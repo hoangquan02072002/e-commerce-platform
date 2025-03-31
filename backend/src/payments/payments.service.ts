@@ -3,45 +3,72 @@ import {
   InternalServerErrorException,
   Logger,
 } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
+import { Payment } from './entities/payment.entity';
+import { Repository } from 'typeorm';
+import { Order } from '../orders/entities/order.entity';
+import { Product } from '../products/entities/product.entity';
+import { OrderItem } from '../orders/entities/order-item.entity';
+import { User } from '../users/entities/user.entity';
 
 @Injectable()
 export class PaymentsService {
   private stripe: Stripe;
   private readonly logger = new Logger(PaymentsService.name);
-  constructor() {
+  constructor(
+    @InjectRepository(Payment)
+    private paymentRepository: Repository<Payment>,
+    @InjectRepository(Product)
+    private productRepository: Repository<Product>,
+    @InjectRepository(Order)
+    private orderRepository: Repository<Order>,
+    @InjectRepository(OrderItem)
+    private orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(User)
+    private userRepository: Repository<User>,
+  ) {
     this.stripe = new Stripe(
       'sk_test_51PsgZxJ7yblNqdVjMKWnmeXNHyvOtpeJl23RLUKbVr94OkKbqgpjnLgTEmbzOQLH8bSjdOq6q3qWCBSrH4zanzg300uyPVHCFG',
     );
   }
   async createCheckoutSession(
-    amount: number,
-    currency: string,
-    productId: string, // Product ID can be used for better data management
-    quantity: number,
+    amount: string,
+    productIds: string[], // Array of product IDs
+    quantities: number[], // Array of quantities corresponding to each product
+    userId: number, // User ID for better data management
   ): Promise<Stripe.Checkout.Session> {
     try {
-      const session = await this.stripe.checkout.sessions.create({
-        line_items: [
-          {
-            price_data: {
-              currency: currency,
-              product_data: {
-                name: `Test Product`, // You can customize the product name as needed
-                // Additional product information can be added here
+      const numericAmount = parseFloat(amount);
+      // Create line items based on the product IDs and quantities
+      const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] =
+        await Promise.all(
+          productIds.map(async (productId, index) => {
+            const product = await this.productRepository.findOne({
+              where: { id: parseInt(productId, 10) },
+            });
+
+            return {
+              price_data: {
+                currency: 'USD',
+                product_data: {
+                  name: product?.name || 'Unknown Product', // Use product name or a default
+                },
+                unit_amount: numericAmount * 100, // Amount is in cents
               },
-              unit_amount: amount * 100, // Amount is in cents
-            },
-            quantity: quantity, // Specify the quantity of the product
-          },
-        ],
+              quantity: quantities[index], // Specify the quantity of the product
+            };
+          }),
+        );
+
+      const session = await this.stripe.checkout.sessions.create({
+        line_items: lineItems, // Use the created line items
         mode: 'payment', // Set the mode to 'payment'
         success_url: `http://localhost:4242/success.html`, // Redirect URL on success
         cancel_url: `http://localhost:4242/cancel.html`, // Redirect URL on cancellation
         metadata: {
-          // Pass any additional data here, such as user ID
-          // or product ID for handling in webhooks
-          productId: productId,
+          productIds: productIds.join(','), // Add product IDs to metadata as a comma-separated string
+          userId: userId, // Pass the user ID
         },
       });
 
@@ -53,33 +80,350 @@ export class PaymentsService {
       );
     }
   }
-  async handleWebhook(event: Stripe.Event) {
-    switch (event.type) {
-      case 'checkout.session.completed':
-        this.logger.log('Checkout session completed:', event.data.object);
-        // Implement your business logic for successful checkout here
-        // For example:
-        const session = event.data.object as Stripe.Checkout.Session;
-        // You can retrieve relevant information from the session object
-        const { payment_status, customer, metadata } = session;
+  async handleWebhook(reqBody: string, sig: string) {
+    const endpointSecret = process.env.WEB_HOOK_SECRET;
 
-        if (payment_status === 'paid') {
-          // Handle successful payment, e.g., update order status in the database
-          this.logger.log(`Payment was successful for customer: ${customer}`);
-          // You might want to send an email or update your database here
-        } else {
-          this.logger.warn('Payment status is not successful:', payment_status);
-        }
-        break;
+    try {
+      // Verify the event using the signature
+      const event = this.stripe.webhooks.constructEvent(
+        reqBody,
+        sig,
+        endpointSecret,
+      );
 
-      case 'checkout.session.expired':
-        this.logger.log('Checkout session expired:', event.data.object);
-        // Handle session expiration (e.g., notify the user or update the database)
-        break;
+      // Log the event for debugging
+      this.logger.log('Received event:', event);
 
-      default:
-        this.logger.warn(`Unhandled event type ${event.type}`);
-        break;
+      switch (event.type) {
+        case 'checkout.session.completed':
+          this.logger.log('Checkout session completed:', event.data.object);
+          const session = event.data.object as Stripe.Checkout.Session;
+
+          // Retrieve relevant information from the session object
+          const { payment_status, customer, metadata } = session;
+
+          // Validate and parse productId and userId
+          const productIds = metadata.productIds.split(','); // Assuming productIds is a comma-separated string
+          const userId = parseInt(metadata.userId, 10);
+
+          if (isNaN(userId)) {
+            this.logger.error('Invalid userId in metadata');
+            throw new InternalServerErrorException('Invalid userId');
+          }
+
+          if (payment_status === 'paid') {
+            // Create or update the order record
+            let order = await this.orderRepository.findOne({
+              where: { id: parseInt(productIds[0], 10) }, // Use the first productId for the order
+            });
+
+            const user = await this.userRepository.findOne({
+              where: { id: userId }, // Assuming userId is passed in metadata
+            });
+
+            if (!order) {
+              // Create a new order if it doesn't exist
+              order = this.orderRepository.create({
+                totalAmount: (session.amount_total / 100).toString(), // Convert cents to dollars
+                status: 'completed', // Set the order status
+                paymentMethod: 'stripe', // Assuming payment method is Stripe
+                isPaid: true,
+                paidAt: new Date(),
+                user: user, // Set the user reference
+              });
+            } else {
+              // Update existing order
+              order.isPaid = true;
+              order.paidAt = new Date();
+              order.status = 'completed';
+              order.user = user; // Update user reference if necessary
+            }
+
+            await this.orderRepository.save(order); // Save the order record
+
+            // Create a new payment record
+            const payment = this.paymentRepository.create({
+              amount: (session.amount_total / 100).toString(), // Convert cents to dollars
+              paymentMethod: 'stripe', // Assuming payment method is Stripe
+              status: payment_status,
+              order: order, // Link the payment to the order
+            });
+
+            await this.paymentRepository.save(payment); // Save the payment record
+
+            // Create order items based on the session line items
+            const orderItems = await Promise.all(
+              session.line_items.data.map(async (item) => {
+                const productId = item.price.product; // Ensure this is the product ID
+                const product = await this.productRepository.findOne({
+                  where: { id: parseInt(productId as string, 10) }, // Convert productId to a number
+                });
+
+                return this.orderItemRepository.create({
+                  quantity: item.quantity,
+                  price: item.price.unit_amount / 100, // Convert cents to dollars
+                  order: order, // Link to the order
+                  product: product, // Link to the product
+                });
+              }),
+            );
+
+            await this.orderItemRepository.save(orderItems); // Save the order items
+
+            this.logger.log(`Payment was successful for customer: ${customer}`);
+          } else {
+            this.logger.warn(
+              'Payment status is not successful:',
+              payment_status,
+            );
+          }
+          break;
+
+        case 'checkout.session.expired':
+          this.logger.log('Checkout session expired:', event.data.object);
+          // Handle session expiration (e.g., notify the user or update the database)
+          break;
+
+        default:
+          this.logger.warn(`Unhandled event type ${event.type}`);
+          break;
+      }
+    } catch (err) {
+      console.log('error', err);
+      this.logger.error(`Webhook Error: ${err.message}`);
+      throw new InternalServerErrorException('Webhook Error');
     }
   }
+  // implement payments qrcode
+
+  // async createCheckoutSession(
+  //   amount: number,
+  //   currency: string,
+  //   productId: string, // Product ID can be used for better data management
+  //   quantity: number,
+  //   userId: number, // User ID can be used for better data management
+  // ): Promise<Stripe.Checkout.Session> {
+  //   try {
+  //     const session = await this.stripe.checkout.sessions.create({
+  //       line_items: [
+  //         {
+  //           price_data: {
+  //             currency: currency,
+  //             product_data: {
+  //               name: `Test Product`, // You can customize the product name as needed
+  //               // Additional product information can be added here
+  //             },
+  //             unit_amount: amount * 100, // Amount is in cents
+  //           },
+  //           quantity: quantity, // Specify the quantity of the product
+  //         },
+  //       ],
+  //       mode: 'payment', // Set the mode to 'payment'
+  //       success_url: `http://localhost:4242/success.html`, // Redirect URL on success
+  //       cancel_url: `http://localhost:4242/cancel.html`, // Redirect URL on cancellation
+  //       metadata: {
+  //         // Pass any additional data here, such as user ID
+  //         // or product ID for handling in webhooks
+  //         productId: productId,
+  //         userId: userId,
+  //       },
+  //     });
+
+  //     return session; // Return the created session
+  //   } catch (error) {
+  //     console.error('Error creating session:', error);
+  //     throw new InternalServerErrorException(
+  //       'Failed to create checkout session', // Handle errors gracefully
+  //     );
+  //   }
+  // }
+  // async handleWebhook(reqBody: string, sig: string) {
+  //   const endpointSecret = process.env.WEB_HOOK_SECRET;
+
+  //   try {
+  //     // Verify the event using the signature
+  //     const event = this.stripe.webhooks.constructEvent(
+  //       reqBody,
+  //       sig,
+  //       endpointSecret,
+  //     );
+
+  //     switch (event.type) {
+  //       case 'checkout.session.completed':
+  //         this.logger.log('Checkout session completed:', event.data.object);
+  //         const session = event.data.object as Stripe.Checkout.Session;
+
+  //         // Retrieve relevant information from the session object
+  //         const { payment_status, customer, metadata } = session;
+
+  //         if (payment_status === 'paid') {
+  //           // Retrieve userId and productId from metadata
+  //           const productId = parseInt(metadata.productId, 10);
+  //           const userId = parseInt(metadata.userId, 10);
+
+  //           // Find the user
+  //           const user = await this.userRepository.findOne({
+  //             where: { id: userId },
+  //           });
+
+  //           // Create or update the order record
+  //           let order = await this.orderRepository.findOne({
+  //             where: { id: productId },
+  //           });
+
+  //           if (!order) {
+  //             // Create a new order if it doesn't exist
+  //             order = this.orderRepository.create({
+  //               totalAmount: session.amount_total / 100, // Convert cents to dollars
+  //               status: 'completed', // Set the order status
+  //               paymentMethod: 'stripe', // Assuming payment method is Stripe
+  //               isPaid: true,
+  //               paidAt: new Date(),
+  //               user: user, // Set the user reference
+  //             });
+  //           } else {
+  //             // Update existing order
+  //             order.isPaid = true;
+  //             order.paidAt = new Date();
+  //             order.status = 'completed';
+  //             order.user = user; // Update user reference if necessary
+  //           }
+
+  //           await this.orderRepository.save(order); // Save the order record
+
+  //           // Create a new payment record
+  //           const payment = this.paymentRepository.create({
+  //             amount: session.amount_total / 100, // Convert cents to dollars
+  //             paymentMethod: 'stripe', // Assuming payment method is Stripe
+  //             status: payment_status,
+  //             order: order, // Link the payment to the order
+  //           });
+
+  //           await this.paymentRepository.save(payment); // Save the payment record
+
+  //           this.logger.log(`Payment was successful for customer: ${customer}`);
+  //         } else {
+  //           this.logger.warn(
+  //             'Payment status is not successful:',
+  //             payment_status,
+  //           );
+  //         }
+  //         break;
+
+  //       case 'checkout.session.expired':
+  //         this.logger.log('Checkout session expired:', event.data.object);
+  //         // Handle session expiration (e.g., notify the user or update the database)
+  //         break;
+
+  //       default:
+  //         this.logger.warn(`Unhandled event type ${event.type}`);
+  //         break;
+  //     }
+  //   } catch (err) {
+  //     this.logger.error(`Webhook Error: ${err.message}`);
+  //     throw new InternalServerErrorException('Webhook Error');
+  //   }
+  // }
+
+  // async handleWebhook(reqBody: string, sig: string) {
+  //   const endpointSecret = process.env.WEB_HOOK_SECRET;
+
+  //   try {
+  //     // Verify the event using the signature
+  //     const event = this.stripe.webhooks.constructEvent(
+  //       reqBody,
+  //       sig,
+  //       endpointSecret,
+  //     );
+
+  //     switch (event.type) {
+  //       case 'checkout.session.completed':
+  //         this.logger.log('Checkout session completed:', event.data.object);
+  //         const session = event.data.object as Stripe.Checkout.Session;
+
+  //         // Retrieve relevant information from the session object
+  //         const { payment_status, customer, metadata } = session;
+
+  //         if (payment_status === 'paid') {
+  //           // Create or update the order record
+  //           let order = await this.orderRepository.findOne({
+  //             where: { id: parseInt(metadata.productId, 10) },
+  //           });
+
+  //           const user = await this.userRepository.findOne({
+  //             where: { id: parseInt(metadata.userId, 10) }, // Assuming userId is passed in metadata
+  //           });
+
+  //           if (!order) {
+  //             // Create a new order if it doesn't exist
+  //             order = this.orderRepository.create({
+  //               totalAmount: session.amount_total / 100, // Convert cents to dollars
+  //               status: 'completed', // Set the order status
+  //               paymentMethod: 'stripe', // Assuming payment method is Stripe
+  //               isPaid: true,
+  //               paidAt: new Date(),
+  //               user: user, // Set the user reference
+  //             });
+  //           } else {
+  //             // Update existing order
+  //             order.isPaid = true;
+  //             order.paidAt = new Date();
+  //             order.status = 'completed';
+  //             order.user = user; // Update user reference if necessary
+  //           }
+
+  //           await this.orderRepository.save(order); // Save the order record
+
+  //           // Create a new payment record
+  //           const payment = this.paymentRepository.create({
+  //             amount: session.amount_total / 100, // Convert cents to dollars
+  //             paymentMethod: 'stripe', // Assuming payment method is Stripe
+  //             status: payment_status,
+  //             order: order, // Link the payment to the order
+  //           });
+
+  //           await this.paymentRepository.save(payment); // Save the payment record
+
+  //           // Create order items based on the session line items
+  //           const orderItems = await Promise.all(
+  //             session.line_items.data.map(async (item) => {
+  //               const productId = item.price.product; // Ensure this is the product ID
+  //               const product = await this.productRepository.findOne({
+  //                 where: { id: parseInt(productId as string, 10) }, // Convert productId to a number
+  //               });
+
+  //               return this.orderItemRepository.create({
+  //                 quantity: item.quantity,
+  //                 price: item.price.unit_amount / 100, // Convert cents to dollars
+  //                 order: order, // Link to the order
+  //                 product: product, // Link to the product
+  //               });
+  //             }),
+  //           );
+
+  //           await this.orderItemRepository.save(orderItems); // Save the order items
+
+  //           this.logger.log(`Payment was successful for customer: ${customer}`);
+  //         } else {
+  //           this.logger.warn(
+  //             'Payment status is not successful:',
+  //             payment_status,
+  //           );
+  //         }
+  //         break;
+
+  //       case 'checkout.session.expired':
+  //         this.logger.log('Checkout session expired:', event.data.object);
+  //         // Handle session expiration (e.g., notify the user or update the database)
+  //         break;
+
+  //       default:
+  //         this.logger.warn(`Unhandled event type ${event.type}`);
+  //         break;
+  //     }
+  //   } catch (err) {
+  //     this.logger.error(`Webhook Error: ${err.message}`);
+  //     throw new InternalServerErrorException('Webhook Error');
+  //   }
+  // }
 }

@@ -3,21 +3,20 @@
 "use client";
 import { InputField } from "@/components/InputField";
 import { ProfileImage } from "@/components/ProfileImage";
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 
 import logoprofile from "../../../public/logoprofile.png";
 import { SidebarItem } from "@/components/SidebarItem";
 import { UserProfile } from "@/lib/types";
 import Link from "next/link";
+import axios from "axios";
+import { getToken } from "@/utils/getToken";
 
 const page = () => {
   const [activeSection, setActiveSection] = useState("/");
-  const [formData, setFormData] = useState({
-    firstName: "",
-    lastName: "",
-    email: "",
-    phoneNumber: "",
-  });
+  const [oldPassword, setOldPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [email, setEmail] = useState("");
   const [profile, setProfile] = useState<UserProfile>({
     firstName: "Mark",
     lastName: "Cole",
@@ -25,13 +24,6 @@ const page = () => {
     phoneNumber: "+1 0231 4554 452",
     profileImage: logoprofile,
   });
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
-  };
   const sidebarItems = [
     {
       id: "",
@@ -62,13 +54,51 @@ const page = () => {
       href: "/profile/changePassword",
     },
   ];
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    if (name === "email") {
+      setEmail(value);
+    } else if (name === "newPassword") {
+      setNewPassword(value);
+    } else if (name === "oldPassword") {
+      setOldPassword(value);
+    }
+  };
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const token = getToken();
+      console.log(token);
+      const { data } = await axios.post(
+        "http://localhost:5000/change-password/request-change-password",
+        {
+          email,
+          oldPassword,
+          newPassword,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      if (data.status == "otp sent to email") {
+        window.location.href = "/profile/changePassword/verifyotp";
+      } else {
+        console.log(data.message);
+      }
+    } catch (error) {
+      console.log("error", error);
+    }
+  };
   return (
     <main
       className="p-8 bg-white rounded-xl max-md:px-5"
       role="main"
       aria-labelledby="profile-heading"
     >
-      <div className="flex gap-5 max-md:flex-col">
+      <div className="flex gap-5 justify-between items-center max-md:flex-col">
         <div
           className="flex flex-col w-[21%] max-md:ml-0 max-md:w-full"
           role="complementary"
@@ -99,42 +129,69 @@ const page = () => {
             </nav>
           </div>
         </div>
-        <section
-          className="flex flex-col ml-5 w-[79%] max-md:ml-0 max-md:w-full"
-          aria-labelledby="section-heading"
-        >
-          <div className="flex flex-col items-start mt-1.5 w-full text-black max-md:mt-10 max-md:max-w-full">
-            <h1
-              id="section-heading"
-              className="text-2xl font-bold leading-tight"
-            >
-              Account info
-            </h1>
-
-            <form
-              // onSubmit={handleSubmit}
-              className="w-full"
-            >
-              <InputField
-                label="Email"
-                value={formData.email}
-                onChange={handleInputChange}
-                type="email"
-                isOptional={true}
-                name="email"
-                autoComplete="email"
-              />
-
+        <div className="flex justify-center items-center w-3/4 min-h-screen bg-gray-100">
+          <div className="p-6 w-full max-w-md bg-white rounded-md shadow-md">
+            <h2 className="mb-6 text-2xl font-semibold">Forget Password</h2>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label
+                  htmlFor="email"
+                  className="block mb-2 text-sm font-bold text-gray-700"
+                >
+                  Enter email
+                </label>
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  className="p-2 w-full rounded-md border"
+                  placeholder="Enter your token"
+                  value={email}
+                  onChange={handleChange}
+                  required
+                />
+                <label
+                  htmlFor="oldPassword"
+                  className="block mb-2 text-sm font-bold text-gray-700"
+                >
+                  Enter old Password
+                </label>
+                <input
+                  type="password"
+                  id="password"
+                  name="oldPassword"
+                  className="p-2 w-full rounded-md border"
+                  placeholder="Enter your password"
+                  value={oldPassword}
+                  onChange={handleChange}
+                  required
+                />
+                <label
+                  htmlFor="confirmPassword"
+                  className="block mb-2 text-sm font-bold text-gray-700"
+                >
+                  Enter new password
+                </label>
+                <input
+                  type="NewPassword"
+                  id="NewPassword"
+                  name="newPassword"
+                  className="p-2 w-full rounded-md border"
+                  placeholder="Enter your ConfirmPassword"
+                  value={newPassword}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
               <button
                 type="submit"
-                className="px-12 py-5 mt-11 text-xs font-medium text-center text-white uppercase whitespace-nowrap bg-green-600 rounded-xl transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 max-md:px-5 max-md:mt-10"
-                aria-label="Save profile changes"
+                className="p-2 w-full text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue"
               >
-                save
+                Change Password
               </button>
             </form>
           </div>
-        </section>
+        </div>
       </div>
     </main>
   );

@@ -13,6 +13,10 @@ export class CategoriesService {
     private readonly categoriesRepository: Repository<Category>,
   ) {}
 
+  async findAll(): Promise<Category[]> {
+    return this.categoriesRepository.find();
+  }
+
   async searchCategories(
     searchCategoryDto: SearchCategoryDto,
   ): Promise<Category[]> {

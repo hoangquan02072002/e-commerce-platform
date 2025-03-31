@@ -21,6 +21,7 @@ import { Roles } from './strategies/roles.decorator';
 import { EmailService } from './../utils/emailService';
 import { MfaOtpService } from './../mfa-otp/mfa-otp.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -47,7 +48,8 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   login(@Request() request: ExpressRequest) {
-    return this.authService.login(request.body);
+    const user = request.user as User;
+    return this.authService.login(user);
   }
   @UseGuards(JwtAuthGuard)
   @Get('profile')

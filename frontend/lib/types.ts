@@ -47,7 +47,7 @@ export interface SocialButtonProps {
   icon: React.ReactNode;
 }
 export interface OrderItemProps {
-  image: StaticImageData;
+  image: string;
   title: string;
   quantity: number;
   shipping?: {

@@ -24,6 +24,8 @@ import { MfaOtpModule } from './mfa-otp/mfa-otp.module';
 import { MfaOtp } from './mfa-otp/entities/mfa-otp.entity';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { CacheModule } from '@nestjs/cache-manager';
+import { PaymentwithqrcodeModule } from './paymentwithqrcode/paymentwithqrcode.module';
+import { Paymentwithqrcode } from './paymentwithqrcode/entities/paymentwithqrcode.entity';
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { CacheModule } from '@nestjs/cache-manager';
           Review,
           OrderItem,
           MfaOtp,
+          Paymentwithqrcode,
           // ... other entities ...
         ],
         synchronize: true, // Disable in production
@@ -80,6 +83,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     NotificationsModule,
     UsersModule,
     MfaOtpModule,
+    PaymentwithqrcodeModule,
     // ... other modules ...
   ],
   controllers: [AppController],

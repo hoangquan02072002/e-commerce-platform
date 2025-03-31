@@ -31,7 +31,7 @@ export const InputField: React.FC<InputFieldProps> = ({
         id={id}
         name={name}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={onChange}
         required={isRequired}
         aria-required={isRequired}
         aria-invalid={!!error}

@@ -29,19 +29,23 @@ export class ProductsService {
     return this.ProductsRepository.save(product);
   }
 
-  async findAll(): Promise<Product[]> {
+  async findAll(page: number, limit: number): Promise<Product[]> {
     try {
-      const productCategories = await this.ProductsRepository.find({
+      const [products, total] = await this.ProductsRepository.findAndCount({
         relations: ['category'],
         order: {
           category: { id: 'ASC' },
           id: 'ASC',
         },
+        skip: (page - 1) * limit,
+        take: limit,
       });
-      if (!productCategories) {
-        throw new NotFoundException();
+
+      if (!products.length) {
+        throw new NotFoundException('No products found');
       }
-      return productCategories;
+
+      return products;
     } catch (error) {
       console.log('Error finding products', error);
       throw new NotFoundException();
@@ -64,10 +68,6 @@ export class ProductsService {
     }
   }
 
-  // update(id: number, updateProductDto: UpdateProductDto) {
-  //   return `This action updates a #${id} product`;
-  // }
-
   async remove(@Param('id') id: number) {
     try {
       const product = await this.ProductsRepository.findOne({
@@ -82,73 +82,32 @@ export class ProductsService {
       throw new NotFoundException();
     }
   }
-  // async searchProducts(searchProductDto: SearchProductDto): Promise<Product[]> {
-  //   const {
-  //     search,
-  //     price,
-  //     rating,
-  //     category,
-  //     attrs,
-  //     pageNum = 1,
-  //     sort,
-  //   } = searchProductDto;
 
-  //   const queryBuilder = this.ProductsRepository.createQueryBuilder('product');
-
-  //   if (search) {
-  //     queryBuilder.andWhere(
-  //       '(product.name LIKE :search OR product.description LIKE :search)',
-  //       { search: `%${name}%` },
-  //     );
-  //   }
-
-  //   if (price) {
-  //     queryBuilder.andWhere('product.price <= :price', { price });
-  //   }
-
-  //   if (rating && rating.length > 0) {
-  //     queryBuilder.andWhere('product.rating IN (:...rating)', { rating });
-  //   }
-
-  //   if (category) {
-  //     queryBuilder.andWhere('product.category = :category', { category });
-  //   }
-
-  //   if (attrs && attrs.length > 0) {
-  //     attrs.forEach((attr) => {
-  //       const [key, ...values] = attr.split('-');
-  //       queryBuilder.andWhere(
-  //         `EXISTS (SELECT 1 FROM jsonb_array_elements(product.attrs) attr WHERE attr->>'key' = :key AND attr->>'value' IN (:...values))`,
-  //         { key, values },
-  //       );
-  //     });
-  //   }
-
-  //   if (sort) {
-  //     const [sortField, sortOrder] = sort.split('_');
-  //     queryBuilder.orderBy(
-  //       `product.${sortField}`,
-  //       sortOrder.toUpperCase() as 'ASC' | 'DESC',
-  //     );
-  //   }
-
-  //   queryBuilder.skip((pageNum - 1) * 10).take(10);
-
-  //   const products = await queryBuilder.getMany();
-
-  //   if (!products.length) {
-  //     throw new NotFoundException('No products found');
-  //   }
-
-  //   return products;
-  // }
   async searchProducts(searchProductDto: SearchProductDto): Promise<Product[]> {
     try {
-      const { search, price, attrs, pageNum, sort } = searchProductDto;
-
+      const {
+        search,
+        category,
+        price,
+        desc,
+        pageNum = 1,
+        limit,
+      } = searchProductDto;
       const queryBuilder =
         this.ProductsRepository.createQueryBuilder('product');
 
+      // Join the category table to access its fields
+      queryBuilder.leftJoinAndSelect('product.category', 'category');
+
+      // Filter by category if provided
+      if (category) {
+        queryBuilder.andWhere('category.name = :category', { category });
+      }
+      if (desc) {
+        queryBuilder.andWhere('desc.name = :desc', { desc });
+      }
+
+      // Filter by search term if provided
       if (search) {
         queryBuilder.andWhere(
           '(product.name ILIKE :search OR product.description ILIKE :search)',
@@ -156,35 +115,51 @@ export class ProductsService {
         );
       }
 
+      // Filter by price if provided
       if (price) {
         queryBuilder.andWhere('product.price <= :price', { price });
       }
 
-      if (attrs && attrs.length > 0) {
-        attrs.forEach((attr) => {
-          const [key, ...values] = attr.split('-');
-          queryBuilder.andWhere(
-            `EXISTS (SELECT 1 FROM jsonb_array_elements(product.attrs) attr WHERE attr->>'key' = :key AND attr->>'value' IN (:...values))`,
-            { key, values },
-          );
-        });
+      // Pagination
+      queryBuilder.skip((pageNum - 1) * limit).take(limit);
+
+      const [products] = await queryBuilder.getManyAndCount();
+
+      if (!products.length) {
+        throw new NotFoundException('No products found');
       }
 
-      if (sort) {
-        const [sortField, sortOrder] = sort.split('_');
-        queryBuilder.orderBy(
-          `product.${sortField}`,
-          sortOrder.toUpperCase() as 'ASC' | 'DESC',
-        );
-      }
-
-      if (pageNum) {
-        queryBuilder.skip((pageNum - 1) * 10).take(10); // Pagination
-      }
-
-      return await queryBuilder.getMany();
+      return products;
     } catch (error) {
       console.log('Error searching products', error);
+      throw new NotFoundException();
+    }
+  }
+
+  async search_category(
+    category: string,
+    page: number,
+    limit: number,
+  ): Promise<Product[]> {
+    try {
+      const [products, total] = await this.ProductsRepository.findAndCount({
+        relations: ['category'],
+        where: { category: { name: category } },
+        order: {
+          category: { id: 'ASC' },
+          id: 'ASC',
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+      if (!products.length) {
+        throw new NotFoundException('No products found');
+      }
+
+      return products;
+    } catch (error) {
+      console.log('Error finding products', error);
       throw new NotFoundException();
     }
   }

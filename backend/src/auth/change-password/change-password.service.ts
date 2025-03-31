@@ -45,7 +45,7 @@ export class ChangePasswordService {
     });
     await this.addCacheKey(`${this.cachePrefix}${email}`);
 
-    return { message: 'OTP sent to your email' };
+    return { status: 'otp sent to email', message: 'OTP sent to your email' };
   }
 
   async verifyChangePassword(verifyChangePasswordDto: VerifyChangePasswordDto) {
@@ -99,7 +99,7 @@ export class ChangePasswordService {
     await this.cacheManager.del(email);
     await this.removeCacheKey(email);
 
-    return { message: 'Password changed successfully' };
+    return { status: 'success', message: 'Password changed successfully' };
   }
 
   private async findEmailByOtp(

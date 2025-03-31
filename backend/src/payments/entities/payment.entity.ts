@@ -8,7 +8,7 @@ export class Payment {
   id: number;
 
   @Column()
-  amount: number;
+  amount: string;
 
   @Column()
   paymentMethod: string; // credit_card, paypal, etc.

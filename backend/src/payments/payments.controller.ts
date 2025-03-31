@@ -16,6 +16,8 @@ import { PaymentsService } from './payments.service';
 import EmailService from '../utils/emailService';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import Stripe from 'stripe';
+import { Request } from 'express';
+import * as QRCode from 'qrcode';
 
 @Controller('payments')
 export class PaymentsController {
@@ -29,20 +31,33 @@ export class PaymentsController {
   async createCheckoutSession(
     @Body()
     body: {
-      amount: number;
-      currency: string;
-      productId: string;
-      quantity: number;
+      amount: string;
+      productId: string[];
+      quantity: number[];
+      userId: number;
     },
   ): Promise<Stripe.Checkout.Session> {
-    const { amount, currency, productId, quantity } = body; // Destructure the body to get the necessary parameters
+    const { amount, productId, quantity, userId } = body; // Destructure the body to get the necessary parameters
 
     return this.paymentsService.createCheckoutSession(
       amount,
-      currency,
       productId,
       quantity,
+      userId,
     ); // Call the service method to create the session
+  }
+  @Post('webhook')
+  async handleStripeWebhook(
+    @Req() req: Request,
+    @Headers('stripe-signature') sig: string,
+  ) {
+    try {
+      await this.paymentsService.handleWebhook(req.rawBody, sig); // Pass rawBody to the service
+      return { received: true }; // Respond to Stripe that the webhook was received
+    } catch (error) {
+      console.error('Webhook Error:', error);
+      throw new HttpException('Webhook Error', HttpStatus.BAD_REQUEST); // Return an error response
+    }
   }
   // @Post('webhook')
   // async handleStripeWebhook(
@@ -65,4 +80,6 @@ export class PaymentsController {
   //   await this.paymentsService.handleWebhook(event);
   //   return { received: true };
   // }
+
+  // implement payment qrcode
 }

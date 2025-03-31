@@ -10,11 +10,13 @@ import {
 } from "@/redux/cart/cartSlice";
 import { AppDispatch } from "@/redux/store";
 import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
 
 const App = () => {
   const cartItems = useSelector(selectCartItems);
   console.log(cartItems);
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const handleClearCart = () => {
     dispatch(clearCart());
     toast.success("Product clear to cart!");
@@ -26,6 +28,9 @@ const App = () => {
   const orderTotal = cartItems.reduce((total, item) => {
     return total + item.price * item.quantity;
   }, 0);
+  const handleCheckout = () => {
+    router.push("/checkout"); // Redirect to the checkout page
+  };
   return (
     <div className="bg-[#EBEEF6] container mx-auto p-6 lg:flex-row lg:space-x-6">
       <div className="flex-1">
@@ -104,7 +109,10 @@ const App = () => {
             <span>ORDER TOTAL:</span>
             <span>{orderTotal.toFixed(2)}</span>
           </div>
-          <button className="py-2 mt-4 w-full text-white bg-green-500 rounded-lg hover:bg-green-600">
+          <button
+            onClick={handleCheckout}
+            className="py-2 mt-4 w-full text-white bg-green-500 rounded-lg hover:bg-green-600"
+          >
             CHECKOUT
           </button>
         </div>

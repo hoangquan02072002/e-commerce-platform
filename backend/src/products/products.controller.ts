@@ -10,6 +10,7 @@ import {
   Post,
   Query,
   UseGuards,
+  ParseIntPipe,
   // Delete,
 } from '@nestjs/common';
 import { ProductsService } from './products.service';
@@ -32,15 +33,48 @@ export class ProductsController {
   create(@Body() createProductDto: CreateProductDto): Promise<Product> {
     return this.productsService.create(createProductDto);
   }
+  // @Get()
+  // async findAll() {
+  //   return await this.productsService.findAll();
+  // }
   @Get()
-  async findAll() {
-    return await this.productsService.findAll();
+  async findAll(
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ): Promise<Product[]> {
+    return this.productsService.findAll(page, limit);
   }
-
+  @Get('search1')
+  async find_search(
+    @Query('category') category: string,
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
+  ): Promise<Product[]> {
+    return this.productsService.search_category(category, page, limit);
+  }
+  // @Get('search')
+  // async searchProducts(
+  //   @Query() searchProductDto: SearchProductDto,
+  // ): Promise<Product[]> {
+  //   return this.productsService.searchProducts(searchProductDto);
+  // }
   @Get('search')
   async searchProducts(
-    @Query() searchProductDto: SearchProductDto,
+    @Query('search') search?: string,
+    @Query('category') category?: string,
+    @Query('price') price?: number,
+    @Query('desc') desc?: string,
+    @Query('page', ParseIntPipe) page: number = 1, // Use page instead of pageNum
+    @Query('limit', ParseIntPipe) limit: number = 10, // Ensure limit is a positive number
   ): Promise<Product[]> {
+    const searchProductDto = {
+      search,
+      category,
+      price,
+      desc,
+      pageNum: page, // If you want to keep using pageNum in the DTO
+      limit,
+    };
     return this.productsService.searchProducts(searchProductDto);
   }
   @Get(':id')

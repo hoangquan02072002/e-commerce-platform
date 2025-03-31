@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../public/logo.png";
 import {
   Select,
@@ -23,13 +23,43 @@ import { selectCartItems } from "@/redux/cart/cartSlice";
 import { FaExclamationCircle } from "react-icons/fa";
 import { AppDispatch, RootState } from "@/redux/store";
 import { logout } from "@/redux/user/loginSlice";
+import axios from "axios";
 
-const Navbar = () => {
+interface Category {
+  id: number;
+  name: string;
+}
+interface NavbarProps {
+  // searchTerm: string;
+  // setSearchTerm: (term: string) => void;
+  // onSearch: () => void;
+  onCategoryClick: (category: string) => void;
+}
+const Navbar: React.FC<NavbarProps> = ({
+  // searchTerm,
+  // setSearchTerm,
+  // onSearch,
+  onCategoryClick,
+}) => {
+  const [categories, setCategories] = useState<Category[]>([]);
   const cartItems = useSelector(selectCartItems);
   const dispatch = useDispatch<AppDispatch>();
   const user_info = useSelector(
     (state: RootState) => state.userLogin.user?.user
   );
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await axios.get("http://localhost:5000/categories");
+        setCategories(response.data);
+      } catch (error) {
+        console.error("Failed to fetch categories", error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+  console.log("uan", categories);
   const handleLogout = () => {
     dispatch(logout());
   };
@@ -89,7 +119,7 @@ const Navbar = () => {
       </div>
 
       {/* navbar2 */}
-      <div className="flex justify-between">
+      <div className="flex justify-between items-center">
         <div className="flex">
           <div className="mr-10">
             <Image src={logo} width={161} height={50} alt="logo" />
@@ -98,17 +128,21 @@ const Navbar = () => {
             <Link href="/" className="px-6 text-base font-bold">
               Home
             </Link>
-            <div className="text-base font-bold">Page</div>
+            <Link href="/about" className="text-base font-bold">
+              About
+            </Link>
             <Link href="/products" className="px-6 text-base font-bold">
               Product
             </Link>
-            <div className="text-base font-bold">Contact</div>
+            <Link href="/contact" className="text-base font-bold">
+              Contact
+            </Link>
           </div>
         </div>
 
         <div className="flex justify-center items-center mt-3 mr-14">
           {user_info ? (
-            <div className="flex items-center">
+            <div className="flex justify-center items-center">
               <Select>
                 <SelectTrigger className="w-[180px] bg-red-600 text-white">
                   <SelectValue placeholder={user_info?.email} />
@@ -128,22 +162,60 @@ const Navbar = () => {
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              <Link href="profile" className="px-3 text-base">
+                <div className="flex px-8">
+                  <AiFillProfile className="w-[30px] h-[30px] rounded-sm" />
+                  Profile
+                </div>
+              </Link>
+              <div className="flex gap-2 justify-center items-center">
+                {cartItems.length > 0 && (
+                  // <FaExclamationCircle className="relative right-5 bg-red-500" />
+                  <div className="relative">
+                    <FaExclamationCircle className="absolute right-[-20px] top-1 text-white bg-red-500 rounded-full" />
+                  </div>
+                )}
+                <div>
+                  <Link href="/cart" className="text-base">
+                    <div className="flex gap-2 justify-center items-center">
+                      <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+                      <span className="">Cart</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
             </div>
           ) : (
-            <>
-              <div className="flex px-3">
-                <RiLoginBoxFill className="w-[30px] h-[30px] rounded-sm" />
-                <Link href="/login" className="px-3 text-base">
-                  Login
-                </Link>
+            <div className="flex gap-3 justify-center items-center">
+              <Link href="/login" className="text-base">
+                <div className="flex gap-2 justify-center items-center">
+                  <RiLoginBoxFill className="w-[30px] h-[30px] rounded-sm" />
+                  <span className="text-base">Login</span>
+                </div>
+              </Link>
+              <Link href="register" className="text-base">
+                <div className="flex gap-2 justify-center items-center">
+                  <FaRegistered className="w-[30px] h-[30px] rounded-sm" />
+                  <span className="text-base">Register</span>
+                </div>
+              </Link>
+              <div className="flex gap-2 justify-center items-center">
+                {cartItems.length > 0 && (
+                  // <FaExclamationCircle className="relative right-5 bg-red-500" />
+                  <div className="relative">
+                    <FaExclamationCircle className="absolute right-[-20px] top-1 text-white bg-red-500 rounded-full" />
+                  </div>
+                )}
+                <div>
+                  <Link href="/cart" className="text-base">
+                    <div className="flex gap-2 justify-center items-center">
+                      <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+                      <span className="">Cart</span>
+                    </div>
+                  </Link>
+                </div>
               </div>
-              <div className="flex px-8">
-                <FaRegistered className="w-[30px] h-[30px] rounded-sm" />
-                <Link href="register" className="px-3 text-base">
-                  Register
-                </Link>
-              </div>
-            </>
+            </div>
           )}
           {/* <div className="flex px-3">
             <RiLoginBoxFill className="w-[30px] h-[30px] rounded-sm" />
@@ -157,23 +229,28 @@ const Navbar = () => {
               Register
             </Link>
           </div> */}
-          <div className="flex ml-10">
-            <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+          {/* <div className="flex ml-10">
             {cartItems.length > 0 && (
-              <FaExclamationCircle className="bg-red-500" />
+              // <FaExclamationCircle className="relative right-5 bg-red-500" />
+              <div className="relative">
+                <FaExclamationCircle className="absolute right-[-65px] top-11 text-white bg-red-500 rounded-full" />
+              </div>
             )}
             <div>
               <Link href="/cart" className="px-3 text-base">
-                Cart
+                <div className="flex items-center px-8">
+                  <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+                  <span className="ml-2">Cart</span>
+                </div>
               </Link>
             </div>
-          </div>
-          <div className="flex px-8">
-            <AiFillProfile className="w-[30px] h-[30px] rounded-sm" />
-            <Link href="profile" className="px-3 text-base">
+          </div> */}
+          {/* <Link href="profile" className="px-3 text-base">
+            <div className="flex px-8">
+              <AiFillProfile className="w-[30px] h-[30px] rounded-sm" />
               Profile
-            </Link>
-          </div>
+            </div>
+          </Link> */}
         </div>
       </div>
       {/* navbar 3 */}
@@ -185,19 +262,23 @@ const Navbar = () => {
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectGroup>
-                  <SelectLabel>Fruits</SelectLabel>
-                  <SelectItem value="apple">Apple</SelectItem>
-                  <SelectItem value="banana">Banana</SelectItem>
-                  <SelectItem value="blueberry">Blueberry</SelectItem>
-                  <SelectItem value="grapes">Grapes</SelectItem>
-                  <SelectItem value="pineapple">Pineapple</SelectItem>
-                </SelectGroup>
+                {categories.map((category) => (
+                  <SelectGroup key={category.id}>
+                    <SelectItem value={category.name}>
+                      {category.name}
+                    </SelectItem>
+                  </SelectGroup>
+                ))}
               </SelectContent>
             </Select>
           </div>
           <div className="flex items-center">
-            <Input type="email" placeholder="Search anything..." />
+            <Input
+              type="text"
+              placeholder="Search anything..."
+              // value={searchTerm}
+              // onChange={(e) => setSearchTerm(e.target.value)}
+            />
             <FaSearch className="mx-7" />
           </div>
         </div>

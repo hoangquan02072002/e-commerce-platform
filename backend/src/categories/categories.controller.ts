@@ -24,6 +24,10 @@ export class CategoriesController {
   ): Promise<Category[]> {
     return this.categoriesService.searchCategories(searchCategoryDto);
   }
+  @Get()
+  async findAll(): Promise<Category[]> {
+    return this.categoriesService.findAll();
+  }
   // @Post()
   // create(@Body() createCategoryDto: CreateCategoryDto) {
   //   return this.categoriesService.create(createCategoryDto);

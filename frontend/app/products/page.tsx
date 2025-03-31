@@ -1,9 +1,10 @@
-import CategoryFilter from "@/components/products/CategoryFilter";
+"use client";
+
+// import CategoryFilter from "@/components/products/CategoryFilter";
 import { CategoryItemProps } from "@/components/products/Categoryitem";
-import CategorySidebar from "@/components/products/CategorySidebar";
-import Pagination from "@/components/products/Pagination";
+// import CategorySidebar from "@/components/products/CategorySidebar";
+// import Pagination from "@/components/products/Pagination";
 import PopularCategories from "@/components/products/PopularCategory";
-import ProductGrid from "@/components/products/ProductGrid";
 import ProductGrids from "@/components/products/ProductGrids";
 import React from "react";
 
@@ -74,25 +75,28 @@ const page = () => {
   return (
     <div className="">
       <PopularCategories categories={categories} />
-      <div className="max-md:max-w-full">
-        <div className="flex gap-5 max-md:flex-col">
+
+      <div className="flex justify-center">
+        {/* <div>
           <CategorySidebar />
-          <ProductGrid />
+        </div> */}
+        <div className="">
+          <ProductGrids />
         </div>
       </div>
-      <div className="self-start mt-1.5 max-md:max-w-full">
+
+      {/* <div className="self-start mt-1.5 max-md:max-w-full">
         <div className="flex gap-5 max-md:flex-col">
           <div className="flex flex-col w-[24%] max-md:ml-0 max-md:w-full">
             <CategoryFilter />
           </div>
           <div className="flex flex-col ml-5 w-[76%] max-md:ml-0 max-md:w-full">
             <div className="flex flex-col mt-4 w-full max-md:mt-10 max-md:max-w-full">
-              <ProductGrids />
               <Pagination />
             </div>
           </div>
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

@@ -1,11 +1,4 @@
-import {
-  IsOptional,
-  IsString,
-  IsNumber,
-  IsArray,
-  IsInt,
-} from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsOptional, IsString, IsNumber, IsPositive } from 'class-validator';
 
 export class SearchProductDto {
   @IsOptional()
@@ -13,20 +6,25 @@ export class SearchProductDto {
   search?: string;
 
   @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
   @IsNumber()
-  @Type(() => Number)
+  @IsPositive() // Ensures price is a positive number
   price?: number;
 
   @IsOptional()
-  @IsArray()
-  attrs?: string[];
-
-  @IsOptional()
-  @IsInt()
-  @Type(() => Number)
-  pageNum?: number;
-
-  @IsOptional()
   @IsString()
-  sort?: string;
+  desc?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive() // Ensures limit is a positive number
+  limit?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsPositive() // Ensures pageNum is a positive number
+  pageNum?: number;
 }

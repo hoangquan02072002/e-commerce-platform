@@ -16,6 +16,8 @@ export const OrderItem: React.FC<OrderItemProps> = ({
           src={image}
           alt={title}
           className="object-contain shrink-0 aspect-square w-[60px]"
+          width={60}
+          height={60}
         />
         <div className="flex flex-col my-auto">
           <div className="font-medium leading-5 text-black">{title}</div>

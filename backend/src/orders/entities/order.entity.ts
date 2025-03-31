@@ -8,13 +8,14 @@ import {
 } from 'typeorm';
 import { OrderItem } from './order-item.entity';
 import { Payment } from '../../payments/entities/payment.entity';
+import { Paymentwithqrcode } from 'src/paymentwithqrcode/entities/paymentwithqrcode.entity';
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  totalAmount: number;
+  totalAmount: string;
 
   @Column()
   status: string;
@@ -36,4 +37,9 @@ export class Order {
 
   @OneToMany(() => Payment, (payment) => payment.order)
   payments: Payment[];
+  @OneToMany(
+    () => Paymentwithqrcode,
+    (paymentwithqrcode) => paymentwithqrcode.order,
+  )
+  paymentwithqrcodes: Paymentwithqrcode[];
 }
