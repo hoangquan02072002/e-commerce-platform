@@ -35,15 +35,47 @@ export class PaymentsController {
       productId: string[];
       quantity: number[];
       userId: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+      address: string;
+      city: string;
+      zipCode: string;
+      phoneNumber: string;
+      stateCountry: string;
+      country: string;
     },
   ): Promise<Stripe.Checkout.Session> {
-    const { amount, productId, quantity, userId } = body; // Destructure the body to get the necessary parameters
+    const {
+      amount,
+      productId,
+      quantity,
+      userId,
+      firstName,
+      lastName,
+      email,
+      address,
+      city,
+      zipCode,
+      phoneNumber,
+      stateCountry,
+      country,
+    } = body; // Destructure the body to get the necessary parameters
 
     return this.paymentsService.createCheckoutSession(
       amount,
       productId,
       quantity,
       userId,
+      firstName,
+      lastName,
+      email,
+      address,
+      city,
+      zipCode,
+      phoneNumber,
+      stateCountry,
+      country,
     ); // Call the service method to create the session
   }
   @Post('webhook')

@@ -4,7 +4,6 @@
 import { InputField } from "@/components/InputField";
 import { ProfileImage } from "@/components/ProfileImage";
 import React, { ChangeEvent, useState } from "react";
-
 import logoprofile from "../../../public/logoprofile.png";
 import { SidebarItem } from "@/components/SidebarItem";
 import { UserProfile } from "@/lib/types";

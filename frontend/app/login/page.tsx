@@ -9,12 +9,18 @@ import { loginUser } from "@/redux/user/loginSlice";
 const loginUserApiRequest = async (
   email: string,
   password: string
-): Promise<{ success: string; createdAt: string }> => {
+): Promise<{ success: string; createdAt: string; message: string }> => {
   try {
     const { data } = await axios.post("http://localhost:5000/auth/login", {
       email,
       password,
     });
+    if (data.success == "mfa success") {
+      window.location.href = "/login/verifyLogin";
+      console.log(data);
+    } else {
+      console.log(data.message);
+    }
     return data;
   } catch (error) {
     console.log(error);

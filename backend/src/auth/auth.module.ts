@@ -15,6 +15,7 @@ import { User } from '../users/entities/user.entity';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ChangePasswordModule } from './change-password/change-password.module';
+import { DeviceModule } from '../device/device.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ChangePasswordModule } from './change-password/change-password.module';
     PassportModule,
     UtilsModule,
     MfaOtpModule,
+    DeviceModule,
     JwtModule.register({
       secret: 'hoanguan',
       signOptions: { expiresIn: '1h' },

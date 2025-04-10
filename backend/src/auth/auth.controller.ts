@@ -22,6 +22,7 @@ import { EmailService } from './../utils/emailService';
 import { MfaOtpService } from './../mfa-otp/mfa-otp.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { User } from 'src/users/entities/user.entity';
+import { DeviceService } from '../device/device.service';
 
 @Controller('auth')
 export class AuthController {
@@ -29,6 +30,7 @@ export class AuthController {
     private readonly authService: AuthService,
     private readonly usersService: UsersService,
     private readonly mfaOtpService: MfaOtpService,
+    private readonly deviceService: DeviceService,
     private emailService: EmailService,
   ) {}
   @Post('register')
@@ -45,18 +47,114 @@ export class AuthController {
     return this.authService.verifyMfa(verifyMfaDto.otp);
   }
 
+  // @UseGuards(LocalAuthGuard)
+  // @Post('login')
+  // login(@Request() request: ExpressRequest) {
+  //   const user = request.user as User;
+  //   return this.authService.login(user);
+  // }
+
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  login(@Request() request: ExpressRequest) {
+  async login(@Request() request) {
     const user = request.user as User;
-    return this.authService.login(user);
+    const deviceType = request.headers['device-type'];
+    const browser = request.headers['user-agent'];
+    const ipAddress = request.ip;
+
+    try {
+      const result = await this.deviceService.handleDeviceLogin(
+        user,
+        deviceType,
+        browser,
+        ipAddress,
+      );
+      if (result.success === 'mfa success') {
+        return { success: 'mfa success' };
+      }
+      const users = request.user as User;
+      const user_info = await this.authService.login(users);
+      return {
+        user_info,
+        success: 'login success',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
+
+  @Post('verify-mfa-device')
+  async verifyMfa(@Request() request, @Body() body: { otp: string }) {
+    try {
+      const { user } = await this.deviceService.verifyMfa(body.otp);
+      const user_info = await this.authService.login(user as User);
+      return {
+        user_info,
+        success: 'login success',
+      };
+    } catch (error) {
+      throw new HttpException(
+        error.message,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // implement fake ip and vpn for login
+  // @UseGuards(LocalAuthGuard)
+  // @Post('login')
+  // async login(@Request() request: ExpressRequest) {
+  //   const user = request.user as User;
+  //   const ip = this.getClientIp(request); // Get the user's IP address
+  //   const userAgent = request.headers['user-agent']; // Get the user's device and browser info
+  //   return this.authService.login(user, ip, userAgent); // Pass the IP and user agent to the login method
+  // }
+
+  // private getClientIp(request: ExpressRequest): string {
+  //   // Try to get the IP from various headers
+  //   const forwardedFor = request.headers['x-forwarded-for'];
+  //   if (forwardedFor) {
+  //     // X-Forwarded-For can contain multiple IPs, the first one is the client
+  //     return forwardedFor.toString().split(',')[0].trim();
+  //   }
+
+  //   const realIp = request.headers['x-real-ip'];
+  //   if (realIp) {
+  //     return realIp.toString();
+  //   }
+
+  //   // Fallback to connection remote address
+  //   const remoteAddress = request.connection.remoteAddress;
+  //   if (remoteAddress) {
+  //     // Remove IPv6 prefix if present
+  //     return remoteAddress.replace('::ffff:', '');
+  //   }
+
+  //   // If we're in development and can't get a real IP, use a test IP
+  //   if (process.env.NODE_ENV === 'development') {
+  //     return '8.8.8.8'; // Use Google's DNS as a fallback for testing
+  //   }
+
+  //   // Default fallback
+  //   return '127.0.0.1';
+  // }
+  // @UseGuards(JwtAuthGuard)
+  // @Post('verify-mfa-ip')
+  // async verifyMfaOtpIp(
+  //   @Body() body: { otp: string },
+  //   @Request() request: ExpressRequest,
+  // ) {
+  //   const user = request.user as User; // Get the authenticated user
+  //   return this.authService.verifyMfaIp(user.email, body.otp); // Pass the email and OTP to the service
+  // }
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
     return req.user;
   }
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get('/admin')

@@ -1,9 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 // import { CreateOrderDto } from './dto/create-order.dto';
 // import { UpdateOrderDto } from './dto/update-order.dto';
 import { Order } from './entities/order.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UpdateOrderDto } from './dto/update-order.dto';
 
 @Injectable()
 export class OrdersService {
@@ -19,11 +20,25 @@ export class OrdersService {
     return this.orderRepository.find();
   }
 
-  async findAllByUser(userId: number): Promise<Order[]> {
+  async findHistoryByUser(userId: number): Promise<Order[]> {
     return this.orderRepository.find({
       where: { user: { id: userId } },
       relations: ['user'],
     });
+  }
+
+  async updateOrderStatus(
+    id: number,
+    updateOrderDto: UpdateOrderDto,
+  ): Promise<Order> {
+    const order = await this.orderRepository.findOne({ where: { id } });
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    // Update the order status
+    order.status = updateOrderDto.status;
+    return this.orderRepository.save(order); // Save the updated order
   }
   findOne(id: number) {
     return `This action returns a #${id} order`;

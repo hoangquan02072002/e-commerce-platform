@@ -44,9 +44,7 @@ const Navbar: React.FC<NavbarProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const cartItems = useSelector(selectCartItems);
   const dispatch = useDispatch<AppDispatch>();
-  const user_info = useSelector(
-    (state: RootState) => state.userLogin.user?.user
-  );
+  const user_info = useSelector((state: RootState) => state.userLogin.user);
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -59,9 +57,13 @@ const Navbar: React.FC<NavbarProps> = ({
 
     fetchCategories();
   }, []);
-  console.log("uan", categories);
   const handleLogout = () => {
     dispatch(logout());
+    window.location.href = "/";
+  };
+  const getAllOrder = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    window.location.href = "/admin";
   };
   return (
     <div className="ml-4">
@@ -141,11 +143,11 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         <div className="flex justify-center items-center mt-3 mr-14">
-          {user_info ? (
+          {/* {user_info ? (
             <div className="flex justify-center items-center">
               <Select>
                 <SelectTrigger className="w-[180px] bg-red-600 text-white">
-                  <SelectValue placeholder={user_info?.email} />
+                  <SelectValue placeholder={user_info?.user_info?.user.email} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -184,6 +186,131 @@ const Navbar: React.FC<NavbarProps> = ({
                   </Link>
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="flex gap-3 justify-center items-center">
+              <Link href="/login" className="text-base">
+                <div className="flex gap-2 justify-center items-center">
+                  <RiLoginBoxFill className="w-[30px] h-[30px] rounded-sm" />
+                  <span className="text-base">Login</span>
+                </div>
+              </Link>
+              <Link href="register" className="text-base">
+                <div className="flex gap-2 justify-center items-center">
+                  <FaRegistered className="w-[30px] h-[30px] rounded-sm" />
+                  <span className="text-base">Register</span>
+                </div>
+              </Link>
+              <div className="flex gap-2 justify-center items-center">
+                {cartItems.length > 0 && (
+                  // <FaExclamationCircle className="relative right-5 bg-red-500" />
+                  <div className="relative">
+                    <FaExclamationCircle className="absolute right-[-20px] top-1 text-white bg-red-500 rounded-full" />
+                  </div>
+                )}
+                <div>
+                  <Link href="/cart" className="text-base">
+                    <div className="flex gap-2 justify-center items-center">
+                      <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+                      <span className="">Cart</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )} */}
+          {user_info?.user_info?.user.role === "user" ? (
+            <div className="flex justify-center items-center">
+              <Select>
+                <SelectTrigger className="w-[180px] bg-red-600 text-white">
+                  <SelectValue placeholder={user_info?.user_info?.user.email} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>
+                      <button onClick={handleLogout} className="px-3 text-base">
+                        Logout
+                      </button>
+                    </SelectLabel>
+                    <SelectItem value="apple">Apple</SelectItem>
+                    <SelectItem value="banana">Banana</SelectItem>
+                    <SelectItem value="blueberry">Blueberry</SelectItem>
+                    <SelectItem value="grapes">Grapes</SelectItem>
+                    <SelectItem value="pineapple">Pineapple</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              <Link href="profile" className="px-3 text-base">
+                <div className="flex px-8">
+                  <AiFillProfile className="w-[30px] h-[30px] rounded-sm" />
+                  Profile
+                </div>
+              </Link>
+              <div className="flex gap-2 justify-center items-center">
+                {cartItems.length > 0 && (
+                  // <FaExclamationCircle className="relative right-5 bg-red-500" />
+                  <div className="relative">
+                    <FaExclamationCircle className="absolute right-[-20px] top-1 text-white bg-red-500 rounded-full" />
+                  </div>
+                )}
+                <div>
+                  <Link href="/cart" className="text-base">
+                    <div className="flex gap-2 justify-center items-center">
+                      <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+                      <span className="">Cart</span>
+                    </div>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : user_info?.user_info?.user.role === "admin" ? (
+            <div className="flex justify-center items-center">
+              <Select>
+                <SelectTrigger className="w-[180px] bg-red-600 text-white">
+                  <SelectValue placeholder={user_info?.user_info?.user.email} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>
+                      <button onClick={handleLogout} className="px-3 text-base">
+                        Logout
+                      </button>
+                    </SelectLabel>
+                    <SelectLabel>
+                      <button onClick={getAllOrder} className="px-3 text-base">
+                        all orders
+                      </button>
+                    </SelectLabel>
+                    <SelectItem value="apple">Apple</SelectItem>
+                    <SelectItem value="banana">Banana</SelectItem>
+                    <SelectItem value="blueberry">Blueberry</SelectItem>
+                    <SelectItem value="grapes">Grapes</SelectItem>
+                    <SelectItem value="pineapple">Pineapple</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
+              {/* <Link href="profile" className="px-3 text-base">
+                <div className="flex px-8">
+                  <AiFillProfile className="w-[30px] h-[30px] rounded-sm" />
+                  Profile
+                </div>
+              </Link> */}
+              {/* <div className="flex gap-2 justify-center items-center">
+                {cartItems.length > 0 && (
+                  // <FaExclamationCircle className="relative right-5 bg-red-500" />
+                  <div className="relative">
+                    <FaExclamationCircle className="absolute right-[-20px] top-1 text-white bg-red-500 rounded-full" />
+                  </div>
+                )}
+                <div>
+                  <Link href="/cart" className="text-base">
+                    <div className="flex gap-2 justify-center items-center">
+                      <FaCartArrowDown className="w-[30px] h-[30px] rounded-sm" />
+                      <span className="">Cart</span>
+                    </div>
+                  </Link>
+                </div>
+              </div> */}
             </div>
           ) : (
             <div className="flex gap-3 justify-center items-center">

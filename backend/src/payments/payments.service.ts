@@ -7,7 +7,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import Stripe from 'stripe';
 import { Payment } from './entities/payment.entity';
 import { Repository } from 'typeorm';
-import { Order } from '../orders/entities/order.entity';
+import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { Product } from '../products/entities/product.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
 import { User } from '../users/entities/user.entity';
@@ -37,6 +37,15 @@ export class PaymentsService {
     productIds: string[], // Array of product IDs
     quantities: number[], // Array of quantities corresponding to each product
     userId: number, // User ID for better data management
+    firstName: string,
+    lastName: string,
+    email: string,
+    address: string,
+    city: string,
+    zipCode: string,
+    phoneNumber: string,
+    stateCountry: string,
+    country: string,
   ): Promise<Stripe.Checkout.Session> {
     try {
       const numericAmount = parseFloat(amount);
@@ -69,6 +78,15 @@ export class PaymentsService {
         metadata: {
           productIds: productIds.join(','), // Add product IDs to metadata as a comma-separated string
           userId: userId, // Pass the user ID
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          address: address,
+          city: city,
+          zipCode: zipCode,
+          phoneNumber: phoneNumber,
+          stateCountry: stateCountry,
+          country: country,
         },
       });
 
@@ -105,7 +123,15 @@ export class PaymentsService {
           // Validate and parse productId and userId
           const productIds = metadata.productIds.split(','); // Assuming productIds is a comma-separated string
           const userId = parseInt(metadata.userId, 10);
-
+          const firstName = metadata.firstName;
+          const lastName = metadata.lastName;
+          const email = metadata.email;
+          const address = metadata.address;
+          const city = metadata.city;
+          const zipCode = metadata.zipCode;
+          const phoneNumber = metadata.phoneNumber;
+          const stateCountry = metadata.stateCountry;
+          const country = metadata.country;
           if (isNaN(userId)) {
             this.logger.error('Invalid userId in metadata');
             throw new InternalServerErrorException('Invalid userId');
@@ -125,18 +151,36 @@ export class PaymentsService {
               // Create a new order if it doesn't exist
               order = this.orderRepository.create({
                 totalAmount: (session.amount_total / 100).toString(), // Convert cents to dollars
-                status: 'completed', // Set the order status
+                status: OrderStatus.PENDING, // Set the order status
                 paymentMethod: 'stripe', // Assuming payment method is Stripe
                 isPaid: true,
                 paidAt: new Date(),
                 user: user, // Set the user reference
+                firstName: firstName,
+                lastName: lastName,
+                email: email,
+                address: address,
+                city: city,
+                zipCode: zipCode,
+                phoneNumber: phoneNumber,
+                stateCountry: stateCountry,
+                country: country,
               });
             } else {
               // Update existing order
               order.isPaid = true;
               order.paidAt = new Date();
-              order.status = 'completed';
+              order.status = OrderStatus.PENDING;
               order.user = user; // Update user reference if necessary
+              order.firstName = firstName;
+              order.lastName = lastName;
+              order.email = email;
+              order.address = address;
+              order.city = city;
+              order.zipCode = zipCode;
+              order.phoneNumber = phoneNumber;
+              order.stateCountry = stateCountry;
+              order.country = country;
             }
 
             await this.orderRepository.save(order); // Save the order record
@@ -161,9 +205,9 @@ export class PaymentsService {
 
                 return this.orderItemRepository.create({
                   quantity: item.quantity,
-                  price: item.price.unit_amount / 100, // Convert cents to dollars
-                  order: order, // Link to the order
-                  product: product, // Link to the product
+                  price: (item.price.unit_amount / 100).toString(), // Convert cents to dollars
+                  order: order,
+                  product: product,
                 });
               }),
             );

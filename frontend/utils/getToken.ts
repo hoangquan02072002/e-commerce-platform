@@ -3,7 +3,7 @@ export const getToken = (): string | null => {
     const savedUser = localStorage.getItem("user");
     if (savedUser) {
       const user = JSON.parse(savedUser);
-      return user.access_token;
+      return user.user_info.access_token;
     }
   }
   return null;

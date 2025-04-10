@@ -13,7 +13,7 @@ interface LoginComponentProps {
     email: string,
     password: string
     // confirmpassword: string
-  ) => Promise<{ success: string; createdAt: string }>;
+  ) => Promise<{ success: string; createdAt: string; message: string }>;
   reduxDispatch: AppDispatch;
   setReduxUserState: typeof loginUser;
 }
@@ -29,6 +29,7 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
     success: "",
     error: "",
     loading: false,
+    message: "",
   });
 
   // const router = useRouter();
@@ -36,14 +37,22 @@ const LoginComponent: React.FC<LoginComponentProps> = ({
     e.preventDefault();
     e.stopPropagation();
     try {
-      setLoginUserResponseState({ loading: true, success: "", error: "" });
+      setLoginUserResponseState({
+        loading: true,
+        success: "",
+        error: "",
+        message: "",
+      });
       loginUserApiRequest(email, password).then((data) => {
         setLoginUserResponseState({
           success: data.success,
+          message: data.message,
           error: "",
           loading: false,
         });
-        if (data.success == "login success") {
+        if (data.success == "mfa success") {
+          window.location.href = "/login/verifyLogin";
+        } else if (data.success == "login success") {
           reduxDispatch(setReduxUserState({ email, password }));
           window.location.href = "/";
           console.log(data);

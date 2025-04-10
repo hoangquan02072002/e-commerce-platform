@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   Put,
   UseGuards,
@@ -36,6 +37,12 @@ export class UsersController {
   // findOne(@Param('id') id: string) {
   //   return this.usersService.findOne(+id);
   // }
+
+  // UseGuards(JwtAuthGuard);
+  @Get('all')
+  async findAll() {
+    return this.usersService.findAll();
+  }
   @UseGuards(JwtAuthGuard)
   @Put('profile/:id')
   async updateProfile(

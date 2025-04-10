@@ -179,4 +179,25 @@ export class UsersService {
       );
     }
   }
+  async findAll(): Promise<User[]> {
+    try {
+      return await this.userRepository.find({
+        select: [
+          'id',
+          'name',
+          'email',
+          'password',
+          'createdAt',
+          'updatedAt',
+          'role',
+          'isActive',
+        ],
+      });
+    } catch (error) {
+      throw new HttpException(
+        'Error retrieving users',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -111,7 +111,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Order } from '../orders/entities/order.entity';
+import { Order, OrderStatus } from '../orders/entities/order.entity';
 import { OrderItem } from '../orders/entities/order-item.entity';
 import { Product } from '../products/entities/product.entity';
 import * as QRCode from 'qrcode';
@@ -146,7 +146,7 @@ export class PaymentwithqrcodeService {
     // Create order
     const order = this.orderRepository.create({
       totalAmount: amount,
-      status: 'pending',
+      status: OrderStatus.PENDING,
       paymentMethod: 'stripe_qrcode',
       isPaid: false,
       user: { id: userId },
@@ -163,7 +163,7 @@ export class PaymentwithqrcodeService {
 
         return this.orderItemRepository.create({
           quantity: quantities[index],
-          price: parseFloat(amount) / quantities[index],
+          price: (parseFloat(amount) / quantities[index]).toFixed(2).toString(),
           order: order,
           product: product,
         });
@@ -185,7 +185,7 @@ export class PaymentwithqrcodeService {
     // Create payment record
     const payment = this.paymentRepository.create({
       amount: amount,
-      status: 'pending',
+      status: OrderStatus.PENDING,
       order: order,
       paymentMethod: 'stripe_qrcode',
       transactionId: paymentIntent.id,
@@ -233,7 +233,7 @@ export class PaymentwithqrcodeService {
       payment.transactionId = paymentIntent.id;
 
       // Update order status
-      payment.order.status = 'completed';
+      payment.order.status = OrderStatus.PENDING;
       payment.order.isPaid = true;
       payment.order.paidAt = new Date();
 

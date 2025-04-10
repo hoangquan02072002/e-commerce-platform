@@ -10,6 +10,7 @@ import { Order } from '../../orders/entities/order.entity';
 import { Review } from '../../reviews/entities/review.entity';
 import { Notification } from '../../notifications/entities/notification.entity';
 import { MfaOtp } from '../../mfa-otp/entities/mfa-otp.entity';
+import { Device } from 'src/device/entities/device.entity';
 
 @Entity()
 export class User {
@@ -44,7 +45,8 @@ export class User {
 
   @Column({ default: false })
   isActive: boolean;
-
+  @OneToMany(() => Device, (device) => device.user)
+  devices: Device[];
   @OneToMany(() => MfaOtp, (mfaOtp) => mfaOtp.user)
   mfaOtps: MfaOtp[];
   @Column({ nullable: true })

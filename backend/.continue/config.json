@@ -1,0 +1,32 @@
+{
+  "$schema": "https://raw.githubusercontent.com/continuedev/continue/main/website/static/schema.json",
+  "models": [
+    {
+      "title": "DeepSeek Coder V2 Lite Instruct (LM Studio)",
+      "provider": "lmstudio",
+      "apiBase": "http://10.255.0.1:1234/v1",
+      "model": "deepseek-coder-v2-lite-instruct"
+    }
+  ],
+  "contextProviders": [
+    {
+      "title": "Project Files",
+      "provider": "file",
+      "config": {
+        "include": ["src/**/*", "lib/**/*", "app/**/*", "*.ts", "*.js", "*.py"],
+        "exclude": [
+          "node_modules/**/*",
+          "dist/**/*",
+          "build/**/*",
+          "**/*.test.*",
+          "**/*.spec.*"
+        ]
+      }
+    }
+  ],
+  "defaultModel": "DeepSeek Coder V2 Lite Instruct (LM Studio)",
+  "contextStrategy": "embedding",
+  "maxFiles": 100,
+  "maxTokens": 32000,
+  "useClaudePromptFormatting": false
+}

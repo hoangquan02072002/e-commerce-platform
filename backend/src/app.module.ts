@@ -26,6 +26,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PaymentwithqrcodeModule } from './paymentwithqrcode/paymentwithqrcode.module';
 import { Paymentwithqrcode } from './paymentwithqrcode/entities/paymentwithqrcode.entity';
+import { DeviceModule } from './device/device.module';
+import { Device } from './device/entities/device.entity';
 
 @Module({
   imports: [
@@ -52,6 +54,7 @@ import { Paymentwithqrcode } from './paymentwithqrcode/entities/paymentwithqrcod
           OrderItem,
           MfaOtp,
           Paymentwithqrcode,
+          Device,
           // ... other entities ...
         ],
         synchronize: true, // Disable in production
@@ -84,6 +87,7 @@ import { Paymentwithqrcode } from './paymentwithqrcode/entities/paymentwithqrcod
     UsersModule,
     MfaOtpModule,
     PaymentwithqrcodeModule,
+    DeviceModule,
     // ... other modules ...
   ],
   controllers: [AppController],

@@ -9,6 +9,13 @@ import {
 import { OrderItem } from './order-item.entity';
 import { Payment } from '../../payments/entities/payment.entity';
 import { Paymentwithqrcode } from 'src/paymentwithqrcode/entities/paymentwithqrcode.entity';
+
+export enum OrderStatus {
+  PENDING = 'PENDING', // Đang xử lý
+  SHIPPED = 'SHIPPED', // Đã vận chuyển
+  DELIVERED = 'DELIVERED', // Giao hàng thành công
+  CANCELED = 'CANCELED', // Đã hủy
+}
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn()
@@ -17,11 +24,38 @@ export class Order {
   @Column()
   totalAmount: string;
 
-  @Column()
-  status: string;
+  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PENDING })
+  status: OrderStatus;
 
   @Column()
   paymentMethod: string;
+
+  @Column()
+  firstName: string;
+
+  @Column()
+  lastName: string;
+
+  @Column()
+  email: string;
+
+  @Column()
+  address: string;
+
+  @Column()
+  city: string;
+
+  @Column()
+  zipCode: string;
+
+  @Column()
+  phoneNumber: string;
+
+  @Column()
+  stateCountry: string;
+
+  @Column()
+  country: string;
 
   @Column({ default: false })
   isPaid: boolean;
