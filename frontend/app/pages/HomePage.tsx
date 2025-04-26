@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+"use client";
 import React from "react";
 import slide3 from "../../public/slider3.png";
 import anh from "../../public/anh.png";
@@ -396,242 +396,149 @@ const pc = [
 ];
 const HomePage = () => {
   return (
-    <div className="bg-[#EBEEF6]">
-      <div className="flex">
-        <ul className="bg-white w-[310px] h-[500px] p-6 ml-5 rounded-3xl">
-          <li className="p-1 text-sm text-red-600"> SALE 40% OFF</li>
-          <li className="p-1 text-xl font-semibold">Laptops</li>
-          <li className="p-1 text-xl font-semibold">PC & Computers</li>
-          <li className="p-1 text-xl font-semibold">Cell Phones</li>
-          <li className="p-1 text-xl font-semibold">Tablets</li>
-          <li className="p-1 text-xl font-semibold">Gaming & VR</li>
-          <li className="p-1 text-xl font-semibold">Networking</li>
-          <li className="p-1 text-xl font-semibold">Cameras</li>
-          <li className="p-1 text-xl font-semibold">Sounds</li>
-          <li className="p-1 text-xl font-semibold">Office</li>
-          <li className="p-1 text-xl font-semibold">Storage, USB</li>
-          <li className="p-1 text-xl font-semibold">Accessories</li>
-          <li className="p-1 text-xl font-semibold">Clearance</li>
-        </ul>
-        <div>
-          <div className="relative">
-            <div className="ml-7">
+    <div className="bg-[#EBEEF6] p-4 md:p-6">
+      {/* Main Layout */}
+      <div className="flex flex-col gap-4 lg:flex-row">
+        {/* Categories Sidebar */}
+        <div className="bg-white w-full lg:w-[310px] p-4 lg:p-6 rounded-3xl">
+          <ul className="space-y-2">
+            <li className="p-1 text-sm text-red-600">SALE 40% OFF</li>
+            <li className="p-1 text-xl font-semibold">Laptops</li>
+            <li className="p-1 text-xl font-semibold">PC & Computers</li>
+            <li className="p-1 text-xl font-semibold">Cell Phones</li>
+            <li className="p-1 text-xl font-semibold">Tablets</li>
+            <li className="p-1 text-xl font-semibold">Gaming & VR</li>
+            <li className="p-1 text-xl font-semibold">Networking</li>
+            <li className="p-1 text-xl font-semibold">Cameras</li>
+            <li className="p-1 text-xl font-semibold">Sounds</li>
+            <li className="p-1 text-xl font-semibold">Office</li>
+            <li className="p-1 text-xl font-semibold">Storage, USB</li>
+            <li className="p-1 text-xl font-semibold">Accessories</li>
+            <li className="p-1 text-xl font-semibold">Clearance</li>
+          </ul>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1">
+          {/* Hero Section */}
+          <div className="relative mb-4">
+            <div className="w-full">
               <Image
-                className="rounded-3xl"
+                className="w-full h-auto rounded-3xl"
                 src={slide3}
                 width={800}
                 height={310}
                 alt="slide"
               />
             </div>
-            <div className="absolute top-7 left-20">
-              <h1 className="text-3xl font-bold text-white">
+            <div className="absolute top-4 left-4 md:top-7 md:left-20">
+              <h1 className="text-2xl font-bold text-white md:text-3xl">
                 Noise Cancelling
               </h1>
-              <div className="text-2xl font-light text-[#FFFFFF]">
+              <div className="text-sm font-light text-white md:text-2xl">
                 Headphone
               </div>
-              <div className="p-3 mt-6">
+              <div className="p-2 mt-4 md:p-3 md:mt-6">
                 <div className="text-sm text-white">
                   Boso Over-Ear Headphone
                 </div>
-                <div className="py-3 text-sm text-white">
+                <div className="py-2 text-sm; text-white md:py-3">
                   Wifi, Voice Assistant,
                 </div>
-                <div className="text-sm text-white">Low latency game mde</div>
+                <div className="text-sm text-white">Low latency game mode</div>
               </div>
-              <Button className="mt-3" variant="outline">
+              <Button className="mt-2 md:mt-3" variant="outline">
                 Buy Now
               </Button>
             </div>
           </div>
-          <div className="flex mt-3 ml-7">
-            <div className="relative pr-4">
-              <div>
-                <Image src={anh} width={410} height={120} alt="anh" />
-              </div>
+
+          {/* Promo Banners */}
+          <div className="flex flex-col gap-4 md:flex-row">
+            <div className="relative flex-1">
+              <Image
+                className="w-full h-auto rounded-2xl"
+                src={anh}
+                width={410}
+                height={120}
+                alt="anh"
+              />
               <div className="absolute top-4 left-4">
                 <div className="font-medium text-black">Sono Playgo 5</div>
                 <div className="text-black">
-                  from <span className="text-[#1ABA1A]"> $569</span>
+                  from <span className="text-[#1ABA1A]">$569</span>
                 </div>
               </div>
             </div>
-            <div className="relative">
-              <div>
-                <Image src={anh1} width={410} height={120} alt="anh1" />
-              </div>
+            <div className="relative flex-1">
+              <Image
+                className="w-full h-auto rounded-2xl"
+                src={anh1}
+                width={410}
+                height={120}
+                alt="anh1"
+              />
               <div className="absolute top-4 left-4">
                 <div className="font-medium text-white">Logitek Bluetooth</div>
                 <div className="text-[#FFC107]">Keyboard</div>
-                <div className="pt-4 text-white">Best for all device</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative ml-2">
-          <div className="">
-            <Image
-              className="rounded-2xl"
-              src={anh2}
-              width={400}
-              height={400}
-              alt="anh2"
-            />
-          </div>
-          <div className="absolute top-4 right-4">
-            <div className="font-extrabold text-black">xomia</div>
-            <div className="font-semibold">Sport Water</div>
-            <div className="font-semibold">Resistance</div>
-            <div className="font-semibold">Watch</div>
-            <Button className="mt-3">Shop Now</Button>
-          </div>
-          <div className="relative mt-3">
-            <div>
-              <Image
-                className="rounded-2xl"
-                src={anh3}
-                width={400}
-                height={400}
-                alt="anh3"
-              />
-            </div>
-            <div className="absolute top-4 left-4">
-              <div className="text-2xl font-bold text-white">OKODo</div>
-              <div className="text-2xl font-bold text-white">hero 11+</div>
-              <div className="text-2xl font-bold text-white">black</div>
-              <div className="font-bold text-white">from</div>
-              <div className="font-bold text-[#1ABA1A]"> $169</div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="flex">
-        <div className="bg-white w-[710px] h-[227px] mt-5 ml-5 rounded-2xl">
-          <div className="p-5 text-base font-bold"> FEATURED BRANDS</div>
-          <div className="grid grid-rows-2 grid-flow-col gap-5 pl-5">
-            <Image src={logo1} width={97} height={33} alt="anh3" />
-            <Image src={logo2} width={97} height={33} alt="anh3" />
-            <Image src={logo3} width={97} height={33} alt="anh3" />
-            <Image src={logo4} width={97} height={33} alt="anh3" />
-            <Image src={logo5} width={97} height={33} alt="anh3" />
-            <Image src={logo6} width={97} height={33} alt="anh3" />
-            <Image src={logo7} width={97} height={33} alt="anh3" />
-            <Image src={logo8} width={97} height={33} alt="anh3" />
-            <Image src={logo9} width={97} height={33} alt="anh3" />
-            <Image src={logo10} width={97} height={33} alt="anh3" />
-          </div>
-        </div>
-        <div className="mt-5 ml-4 bg-white rounded-2xl w-[770px]">
-          <div className="p-5 text-base font-bold">TOP CATEGORIES</div>
-          <div className="flex justify-around items-center">
-            <div>
-              <Image src={prod1} width={114} height={60} alt="product" />
-              <h1 className="p-5 font-semibold"> Laptops</h1>
-            </div>
-            <div>
-              <Image src={prod2} width={114} height={60} alt="product" />
-              <h1 className="p-5 font-semibold"> PC Gaming</h1>
-            </div>
-            <div>
-              <Image src={prod3} width={114} height={60} alt="product" />
-              <h1 className="p-5 font-semibold"> Headphones</h1>
-            </div>
-            <div>
-              <Image src={prod4} width={114} height={60} alt="product" />
-              <h1 className="p-5 font-semibold"> Monitors</h1>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="flex ml-4">
-        <div>
-          <div className="mt-4 rounded-xl p-4 w-[1090px] h-[62px] bg-[#1ABA1A]">
-            <div className="text-base font-bold text-white">
-              DEALS OF THE DAY
-            </div>
-          </div>
-          <div className="flex bg-white w-[1090px] rounded-2xl">
-            <div className="ml-4">
-              <Image src={Iphone} width={441} height={400} alt="iphone" />
-            </div>
-            <div className="mt-10 ml-10">
-              <div className="text-base font-bold">
-                Xioma Redmi Note 11 Pro 256GB 2023, Black Smartphone
-              </div>
-              <div className="font-semibold text-[#F1352B] py-4 text-2xl">
-                $569.00{" "}
-                <span className="font-semibold text-[#666666]">$759.00</span>
-              </div>
-              <div className="">
-                <div>
-                  {" "}
-                  Intel LGA 1700 Socket: Supports 13th & 12th Gen Intel Core
-                </div>
-                <div className="py-3">
-                  {" "}
-                  DDR5 Compatible: 4*SMD DIMMs with XMP 3.0 Memory
-                </div>
-                <div>
-                  {" "}
-                  Commanding Power Design: Twin 16+1+2 Phases Digital VRM
-                </div>
-                <div>
-                  <span>
-                    <Button
-                      className="mx-3 mt-3 text-[#1ABA1A]"
-                      variant="secondary"
-                    >
-                      FREE SHIPPING
-                    </Button>
-                    <Button className="text-[#F1352B]" variant="secondary">
-                      FREE GIFT
-                    </Button>
-                  </span>
-                </div>
-                <div className="flex gap-4 justify-center items-center">
-                  <div className="mt-4 text-base font-bold">
-                    <div>HURRY UP </div>
-                    <div>PROMOTION WILL</div>
-                    <div>EXPIRES IN</div>
-                  </div>
-                  <div className="">
-                    <Button className="" variant="secondary">
-                      -162 day
-                    </Button>
-                    <Button className="mx-2" variant="secondary">
-                      -9 H
-                    </Button>
-                    <Button variant="secondary">-3 M 2 </Button>
-                    <Button className="ml-2" variant="secondary">
-                      -3 S 4
-                    </Button>
-                  </div>
+                <div className="pt-2 text-white md:pt-4">
+                  Best for all device
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="ml-6">
-          <Image
-            className="my-4"
-            src={product}
-            width={400}
-            height={175}
-            alt="product"
-          />
-          <Image src={product1} width={400} height={175} alt="product" />
         </div>
       </div>
 
-      <div className="ml-4 bg-white rounded-2xl">
-        <ul className="flex gap-4 p-6 font-semibold">
-          <li>BESTSELLER </li>
+      {/* Featured Brands and Categories */}
+      <div className="flex flex-col gap-4 mt-4 lg:flex-row">
+        <div className="bg-white w-full lg:w-[710px] p-4 rounded-2xl">
+          <div className="p-2 text-base font-bold md:p-5">FEATURED BRANDS</div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-5">
+            <Image src={logo1} width={97} height={33} alt="brand" />
+            <Image src={logo2} width={97} height={33} alt="brand" />
+            <Image src={logo3} width={97} height={33} alt="brand" />
+            <Image src={logo4} width={97} height={33} alt="brand" />
+            <Image src={logo5} width={97} height={33} alt="brand" />
+            <Image src={logo6} width={97} height={33} alt="brand" />
+            <Image src={logo7} width={97} height={33} alt="brand" />
+            <Image src={logo8} width={97} height={33} alt="brand" />
+            <Image src={logo9} width={97} height={33} alt="brand" />
+            <Image src={logo10} width={97} height={33} alt="brand" />
+          </div>
+        </div>
+
+        <div className="bg-white w-full lg:w-[770px] p-4 rounded-2xl">
+          <div className="p-2 text-base font-bold md:p-5">TOP CATEGORIES</div>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            <div className="text-center">
+              <Image src={prod1} width={114} height={60} alt="category" />
+              <h1 className="p-2 font-semibold md:p-5">Laptops</h1>
+            </div>
+            <div className="text-center">
+              <Image src={prod2} width={114} height={60} alt="category" />
+              <h1 className="p-2 font-semibold md:p-5">PC Gaming</h1>
+            </div>
+            <div className="text-center">
+              <Image src={prod3} width={114} height={60} alt="category" />
+              <h1 className="p-2 font-semibold md:p-5">Headphones</h1>
+            </div>
+            <div className="text-center">
+              <Image src={prod4} width={114} height={60} alt="category" />
+              <h1 className="p-2 font-semibold md:p-5">Monitors</h1>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Products Grid */}
+      <div className="p-4 mt-4 bg-white rounded-2xl">
+        <ul className="flex flex-wrap gap-4 p-2 font-semibold md:p-6">
+          <li>BESTSELLER</li>
           <li>NEW IN</li>
           <li>POPULAR</li>
         </ul>
-        <div className="flex gap-4 justify-evenly items-center">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {products.map((product) => (
             <Cart
               key={product.id}
@@ -645,10 +552,11 @@ const HomePage = () => {
           ))}
         </div>
       </div>
-      <div className="mt-4 ml-4 bg-white rounded-2xl">
-        <div className="p-6 font-semibold">BRAND NEW FOR YOU</div>
 
-        <div className="flex gap-4 justify-evenly items-center">
+      {/* Brand New Section */}
+      <div className="p-4 mt-4 bg-white rounded-2xl">
+        <div className="p-2 font-semibold md:p-6">BRAND NEW FOR YOU</div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {Brand.map((items) => (
             <Cart
               key={items.id}
@@ -662,140 +570,24 @@ const HomePage = () => {
         </div>
       </div>
 
-      <div className="mt-4 ml-4 bg-white rounded-2xl">
-        <div className=" h-[225px]">
-          <div className="p-6 font-semibold">TOP CELLPHONES & TABLETS</div>
-          <div className="flex justify-between items-center">
-            <div className="ml-10">
-              <div className="text-xl font-bold text-black">
-                REDMI NODE 12 PRO+ 5G
-              </div>
-              <div className="text-[#666666] py-5">Rise to the challenge</div>
-              <Button className="my-2 text-white">SHOW NOW</Button>
-            </div>
-
-            <div className="grid grid-cols-3 grid-rows-2 gap-6 mr-5">
-              {iphone.map((phone) => (
-                <div
-                  key={phone.id}
-                  className="flex gap-4 justify-center items-center"
-                >
-                  <div className="">
-                    <h1 className="font-bold">{phone.name}</h1>
-                    <p>{phone.count}</p>
-                  </div>
-                  <Image
-                    objectFit="cover"
-                    width={60}
-                    height={62}
-                    src={phone.imgurl}
-                    alt="iphone"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr
-            style={{
-              border: "none",
-              height: "2px",
-              backgroundColor: "#EBEEF6",
-              margin: "20px 0",
-            }}
-          />
-        </div>
-        <div className="flex gap-4 justify-evenly items-center">
-          {iphoneTablet.map((product) => (
-            <Cart
-              key={product.id}
-              Imagesrc={product.Imagesrc}
-              name={product.name}
-              price={product.price}
-              stock={product.stock}
-              button={product.button}
-              id={product.id}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="mt-4 ml-4 bg-white rounded-2xl">
-        <div className=" h-[225px]">
-          <div className="p-6 font-semibold">Best Laptops & Computers</div>
-          <div className="flex justify-between items-center">
-            <div className="ml-10">
-              <div className="text-xl font-bold text-black">MACBOOK PRO</div>
-              <div className="text-[#666666] py-5">Rise to the challenge</div>
-              <Button className="my-2 text-white">SHOW NOW</Button>
-            </div>
-
-            <div className="grid grid-cols-3 grid-rows-2 gap-6 mr-5">
-              {Laptop.map((phone) => (
-                <div
-                  key={phone.id}
-                  className="flex gap-4 justify-center items-center"
-                >
-                  <div className="">
-                    <h1 className="font-bold">{phone.name}</h1>
-                    <p>{phone.count}</p>
-                  </div>
-                  <Image
-                    objectFit="cover"
-                    width={60}
-                    height={62}
-                    src={phone.imgurl}
-                    alt="iphone"
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <hr
-            style={{
-              border: "none",
-              height: "2px",
-              backgroundColor: "#EBEEF6",
-              margin: "20px 0",
-            }}
-          />
-        </div>
-        <div className="flex gap-4 justify-evenly items-center">
-          {pc.map((product) => (
-            <Cart
-              key={product.id}
-              Imagesrc={product.Imagesrc}
-              name={product.name}
-              price={product.price}
-              stock={product.stock}
-              button={product.button}
-              id={product.id}
-            />
-          ))}
-        </div>
-      </div>
-      <div className="flex mt-4 ml-4 rounded-2xl">
-        <div className="bg-white w-[500px] rounded-2xl">
-          <div className="p-6 font-semibold">AUDIO & CAMERAS</div>
+      {/* Categories Grid */}
+      <div className="flex flex-col gap-4 mt-4 lg:flex-row">
+        <div className="p-4 w-full bg-white rounded-2xl lg:w-1/3">
+          <div className="p-2 font-semibold md:p-6">AUDIO & CAMERAS</div>
           <Image
-            className="mx-auto rounded-2xl"
-            objectFit="cover"
-            width={368}
-            height={190}
+            className="w-full h-auto rounded-2xl"
             src={came}
             alt="camera"
           />
-          <div className="grid grid-cols-2 grid-rows-2 gap-5 mx-auto mt-10">
+          <div className="grid grid-cols-2 gap-4 mt-4">
             {cameras.map((item) => (
-              <div className="mx-auto" key={item.id}>
+              <div key={item.id} className="flex flex-col items-center">
                 <Image
-                  objectFit="cover"
-                  width={120}
-                  height={120}
                   src={item.imgurl}
                   alt="camera"
+                  className="object-cover w-20 h-20"
                 />
-                <div className="pl-4">
+                <div className="text-center">
                   <h1 className="font-bold">{item.name}</h1>
                   <p>{item.count}</p>
                 </div>
@@ -803,28 +595,19 @@ const HomePage = () => {
             ))}
           </div>
         </div>
-        <div className="mx-4 bg-white w-[500px] rounded-2xl">
-          <div className="p-6 font-semibold">GAMING</div>
-          <Image
-            className="mx-auto rounded-2xl"
-            objectFit="cover"
-            width={368}
-            height={190}
-            src={gam}
-            alt="camera"
-          />
-          <div className="grid grid-cols-2 grid-rows-2 gap-5 mt-10">
+
+        <div className="p-4 w-full bg-white rounded-2xl lg:w-1/3">
+          <div className="p-2 font-semibold md:p-6">GAMING</div>
+          <Image className="w-full h-auto rounded-2xl" src={gam} alt="gaming" />
+          <div className="grid grid-cols-2 gap-4 mt-4">
             {gaming.map((item) => (
-              <div className="mx-auto" key={item.id}>
+              <div key={item.id} className="flex flex-col items-center">
                 <Image
-                  className="mx-auto"
-                  objectFit="cover"
-                  width={120}
-                  height={120}
                   src={item.imgurl}
-                  alt="camera"
+                  alt="gaming"
+                  className="object-cover w-20 h-20"
                 />
-                <div className="pl-4">
+                <div className="text-center">
                   <h1 className="font-bold">{item.name}</h1>
                   <p>{item.count}</p>
                 </div>
@@ -832,27 +615,23 @@ const HomePage = () => {
             ))}
           </div>
         </div>
-        <div className="bg-white w-[500px] rounded-2xl">
-          <div className="p-6 font-semibold"> OFFICE EQUIPMENT</div>
+
+        <div className="p-4 w-full bg-white rounded-2xl lg:w-1/3">
+          <div className="p-2 font-semibold md:p-6">OFFICE EQUIPMENT</div>
           <Image
-            className="mx-auto rounded-2xl"
-            objectFit="cover"
-            width={368}
-            height={190}
+            className="w-full h-auto rounded-2xl"
             src={office0}
-            alt="camera"
+            alt="office"
           />
-          <div className="grid grid-cols-2 grid-rows-2 gap-5 mx-auto mt-10">
+          <div className="grid grid-cols-2 gap-4 mt-4">
             {office.map((item) => (
-              <div className="mx-auto" key={item.id}>
+              <div key={item.id} className="flex flex-col items-center">
                 <Image
-                  objectFit="cover"
-                  width={120}
-                  height={120}
                   src={item.imgurl}
-                  alt="camera"
+                  alt="office"
+                  className="object-cover w-20 h-20"
                 />
-                <div className="pl-4">
+                <div className="text-center">
                   <h1 className="font-bold">{item.name}</h1>
                   <p>{item.count}</p>
                 </div>

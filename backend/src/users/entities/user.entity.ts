@@ -11,6 +11,7 @@ import { Review } from '../../reviews/entities/review.entity';
 import { Notification } from '../../notifications/entities/notification.entity';
 import { MfaOtp } from '../../mfa-otp/entities/mfa-otp.entity';
 import { Device } from 'src/device/entities/device.entity';
+import { ChatMessage } from 'src/chatapp/entities/chatapp.entity';
 
 @Entity()
 export class User {
@@ -54,4 +55,7 @@ export class User {
 
   @Column({ nullable: true, type: 'timestamp' })
   resetPasswordExpires: Date;
+
+  @OneToMany(() => ChatMessage, (chatMessage) => chatMessage.sender)
+  chatMessages: ChatMessage[];
 }

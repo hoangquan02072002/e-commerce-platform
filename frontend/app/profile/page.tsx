@@ -48,7 +48,7 @@ const Profile: React.FC = () => {
       href: "/profile",
     },
     {
-      id: "orders",
+      id: "order",
       text: "My order",
       ariaLabel: "View my orders",
       onClick: () => setActiveSection("orders"),

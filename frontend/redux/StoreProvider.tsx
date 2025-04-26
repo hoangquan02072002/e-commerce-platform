@@ -1,6 +1,6 @@
 "use client";
 import { Provider } from "react-redux";
-import store from "./store"; // Ensure correct import of the store
+import store from "./store";
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   children,

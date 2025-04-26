@@ -134,6 +134,7 @@ export const loginUser = createAsyncThunk(
     userData: {
       email: string;
       password: string;
+      visitorId: string;
     },
     { rejectWithValue }
   ) => {

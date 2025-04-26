@@ -5,11 +5,14 @@ import Link from "next/link";
 import Image from "next/image";
 import contact from "@/public/contact.png";
 import { SocialButton } from "@/components/SocialButton";
-import { FaFacebook } from "react-icons/fa";
-import { FaTwitter } from "react-icons/fa";
-import { FaInstagramSquare } from "react-icons/fa";
-import { FaLinkedin } from "react-icons/fa";
-import { FaYoutube } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaTwitter,
+  FaInstagramSquare,
+  FaLinkedin,
+  FaYoutube,
+} from "react-icons/fa";
+
 const ContactForm: React.FC = () => {
   const socialButtons = [
     { ariaLabel: "Facebook", icon: <FaFacebook /> },
@@ -20,20 +23,20 @@ const ContactForm: React.FC = () => {
   ];
 
   return (
-    <main className="px-8 py-8 bg-white rounded-xl max-md:px-5">
-      <div className="flex gap-5 max-md:flex-col">
-        <section className="flex flex-col w-[59%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col items-start w-full max-md:mt-10 max-md:max-w-full">
-            <h1 className="text-lg font-bold leading-tight uppercase text-black">
+    <main className="container px-4 py-8 mx-auto md:px-6 lg:px-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
+        <section className="w-full">
+          <div className="space-y-8">
+            <h1 className="text-2xl font-bold text-black uppercase">
               ready to work with us
             </h1>
-            <p className="self-stretch mt-16 text-base leading-relaxed text-stone-500 max-md:mt-10">
+            <p className="text-base text-stone-500">
               Contact us for all your questions and opinions
             </p>
 
-            <form className="w-full">
-              <div className="flex flex-wrap gap-4 mt-4">
-                <div className="flex-1 min-w-[45%]">
+            <form className="space-y-6">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div>
                   <FormInput
                     label="First Name"
                     id="firstName"
@@ -41,7 +44,7 @@ const ContactForm: React.FC = () => {
                     required={true}
                   />
                 </div>
-                <div className="flex-1 min-w-[45%]">
+                <div>
                   <FormInput
                     label="Last Name"
                     id="lastName"
@@ -65,17 +68,19 @@ const ContactForm: React.FC = () => {
                 optional={true}
               />
 
-              <div className="mt-7 text-sm text-black">
-                Country / Region <span className="text-red-600">*</span>
+              <div className="space-y-2">
+                <label className="text-sm text-black">
+                  Country / Region <span className="text-red-600">*</span>
+                </label>
+                <select
+                  id="country"
+                  name="country"
+                  required
+                  className="px-4 py-3 w-full text-sm bg-white rounded-md border border-stone-300 text-neutral-800 focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="US">United States (US)</option>
+                </select>
               </div>
-              <select
-                id="country"
-                name="country"
-                required
-                className="flex flex-wrap gap-5 justify-between self-stretch px-3.5 py-4 mt-3 text-sm bg-white rounded-md border border-solid border-stone-300 text-neutral-800 w-full"
-              >
-                <option value="US">United States (US)</option>
-              </select>
 
               <FormInput
                 label="Subject"
@@ -84,26 +89,31 @@ const ContactForm: React.FC = () => {
                 optional={true}
               />
 
-              <label htmlFor="message" className="mt-8 text-sm text-black">
-                Message
-              </label>
-              <textarea
-                id="message"
-                name="message"
-                className="overflow-hidden self-stretch px-3.5 pt-3 pb-24 mt-3 text-sm bg-white rounded-md border border-solid border-stone-300 text-neutral-400 w-full"
-                placeholder="Note about your order, e.g. special note for delivery"
-              />
+              <div className="space-y-2">
+                <label htmlFor="message" className="text-sm text-black">
+                  Message
+                </label>
+                <textarea
+                  id="message"
+                  name="message"
+                  className="w-full px-4 py-3 text-sm bg-white rounded-md border border-stone-300 text-neutral-400 focus:outline-none focus:ring-2 focus:ring-green-500 min-h-[150px]"
+                  placeholder="Note about your order, e.g. special note for delivery"
+                />
+              </div>
 
-              <div className="flex items-start gap-2 mt-7">
+              <div className="flex gap-2 items-start">
                 <input
                   type="checkbox"
                   id="newsletter"
-                  className="mt-1 w-3.5 h-3.5 border border-solid border-black border-opacity-30 rounded"
+                  className="mt-1 w-4 h-4 rounded border border-stone-300 focus:ring-green-500"
                 />
                 <label htmlFor="newsletter" className="text-sm text-black">
                   I want to receive news and updates once in a while. By
                   submitting, I'm agreed to the{" "}
-                  <Link href="#terms" className="text-green-600 underline">
+                  <Link
+                    href="#terms"
+                    className="text-green-600 underline hover:text-green-700"
+                  >
                     Terms & Conditions
                   </Link>
                 </label>
@@ -111,7 +121,7 @@ const ContactForm: React.FC = () => {
 
               <button
                 type="submit"
-                className="px-8 py-5 mt-14 text-xs font-medium text-center text-white uppercase bg-green-600 rounded-xl w-full max-md:px-5 max-md:mt-10"
+                className="px-6 py-4 w-full text-sm font-medium text-white uppercase bg-green-600 rounded-xl transition-colors hover:bg-green-700"
               >
                 send message
               </button>
@@ -119,43 +129,47 @@ const ContactForm: React.FC = () => {
           </div>
         </section>
 
-        <div className="flex flex-col ml-5 w-[41%] max-md:ml-0 max-md:w-full">
-          <div className="flex flex-col grow mt-16 text-xs text-black max-md:mt-10 max-md:max-w-full">
-            <div className="flex flex-col items-start py-8 pr-20 pl-8 w-full rounded-xl bg-slate-100 max-md:px-5 max-md:max-w-full">
-              <div>
-                <div className="uppercase text-stone-500">ADDRESS</div>
-                {/* <ContactInfo {...location} /> */}
-                <div className="mt-9 text-base leading-8">
-                  Hoa Tho Dong
-                  <br />
-                  0764783802
-                  <br />
-                  <Link
-                    href={`mailto:@gmail.com`}
-                    className="text-green-600 underline"
-                  >
-                    @gmail.com
-                  </Link>
+        <div className="w-full">
+          <div className="space-y-8">
+            <div className="p-8 rounded-xl bg-slate-100">
+              <div className="space-y-6">
+                <div>
+                  <div className="uppercase text-stone-500">ADDRESS</div>
+                  <div className="mt-4 text-base leading-8">
+                    Hoa Tho Dong
+                    <br />
+                    0764783802
+                    <br />
+                    <Link
+                      href="mailto:@gmail.com"
+                      className="text-green-600 underline hover:text-green-700"
+                    >
+                      @gmail.com
+                    </Link>
+                  </div>
                 </div>
-              </div>
 
-              <div className="flex gap-3.5 mt-14 text-sm leading-none text-center whitespace-nowrap max-md:mt-10">
-                {socialButtons.map((button, index) => (
-                  <SocialButton
-                    key={index}
-                    ariaLabel={button.ariaLabel}
-                    icon={button.icon}
-                  />
-                ))}
+                <div className="flex gap-4">
+                  {socialButtons.map((button, index) => (
+                    <SocialButton
+                      key={index}
+                      ariaLabel={button.ariaLabel}
+                      icon={button.icon}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
-            <Image
-              loading="lazy"
-              src={contact}
-              alt="Contact office location map"
-              className="object-contain mt-2.5 w-full rounded-xl aspect-[1.38] max-md:max-w-full"
-            />
+            <div className="relative w-full aspect-[1.38] rounded-xl overflow-hidden">
+              <Image
+                src={contact}
+                alt="Contact office location map"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
           </div>
         </div>
       </div>

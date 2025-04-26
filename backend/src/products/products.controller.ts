@@ -37,6 +37,8 @@ export class ProductsController {
   // async findAll() {
   //   return await this.productsService.findAll();
   // }
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get()
   async findAll(
     @Query('page', ParseIntPipe) page: number = 1,

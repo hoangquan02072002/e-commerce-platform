@@ -128,45 +128,61 @@ const ProductCards = forwardRef<HTMLDivElement, ProductCardProps>(
 
     const handleClick = () => {
       router.push(`/products/${id}`);
-      console.log("id", id);
     };
 
     return (
-      <div ref={ref} className="flex flex-col max-md:ml-0 max-md:w-full">
-        <div className="flex flex-col w-64 h-[550px] bg-gray-300 border-4 border-gray-600 border-double max-md:mt-10">
+      <div
+        ref={ref}
+        className="flex flex-col h-full bg-white rounded-lg shadow-md transition-shadow duration-300 hover:shadow-lg"
+      >
+        {/* Product Image */}
+        <div className="overflow-hidden relative w-full rounded-t-lg aspect-square">
           <Image
-            loading="lazy"
             src={image}
             alt={name}
-            width={256}
-            height={100}
-            objectFit="cover"
+            fill
+            className="object-cover transition-transform duration-300 hover:scale-105"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
-          <div className=" text-sm font-bold leading-4 text-black max-md:mr-1.5 px-3 pt-3">
-            {name}
-          </div>
-          <div className=" text-sm font-bold leading-4 text-black max-md:mr-1.5 p-3">
-            {category.name}
-          </div>
-          <div className="flex self-start px-3 font-semibold leading-tight">
-            <div className="text-lg text-black grow">Price: {price} </div>
-          </div>
-          <div className="flex self-start text-xs">
-            <div className="p-3 text-lg leading-relaxed text-black">
-              {stock > 0 ? `In Stock: ${stock}` : "Out of Stock"}
+        </div>
+
+        {/* Product Info */}
+        <div className="flex flex-col flex-grow p-4">
+          <div className="space-y-2">
+            <h3 className="text-sm font-bold text-gray-900 line-clamp-2">
+              {name}
+            </h3>
+            <p className="text-xs text-gray-500">{category.name}</p>
+            <div className="flex justify-between items-center">
+              <span className="text-lg font-semibold text-gray-900">
+                {price} RUB
+              </span>
+              <span
+                className={`text-xs ${
+                  stock > 0 ? "text-green-600" : "text-red-600"
+                }`}
+              >
+                {stock > 0 ? `In Stock: ${stock}` : "Out of Stock"}
+              </span>
             </div>
           </div>
-          <div className="flex gap-2 justify-center items-center">
+
+          {/* Action Buttons */}
+          <div className="flex flex-col gap-2 mt-4">
             <Button
               onClick={() =>
                 handleAddToCart({ id, name, price, image, stock, category })
               }
-              className="text-[#1ABA1A] my-2"
+              className="py-2 w-full text-sm font-medium text-white bg-green-500 transition-colors hover:bg-green-600"
+              disabled={stock === 0}
             >
               Add to cart
             </Button>
-            <Button onClick={handleClick} className="text-[#1ABA1A] my-2">
-              Detail product
+            <Button
+              onClick={handleClick}
+              className="py-2 w-full text-sm font-medium text-green-500 bg-white border border-green-500 transition-colors hover:bg-green-50"
+            >
+              View Details
             </Button>
           </div>
         </div>
@@ -174,5 +190,7 @@ const ProductCards = forwardRef<HTMLDivElement, ProductCardProps>(
     );
   }
 );
+
+ProductCards.displayName = "ProductCards";
 
 export default ProductCards;

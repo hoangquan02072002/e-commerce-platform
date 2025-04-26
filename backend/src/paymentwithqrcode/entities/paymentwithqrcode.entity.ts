@@ -27,6 +27,18 @@ export class Paymentwithqrcode {
   @Column({ nullable: true })
   transactionId: string;
 
+  @Column({ nullable: true })
+  momoOrderId: string;
+
+  @Column({ nullable: true })
+  momoRequestId: string;
+
+  @Column({ nullable: true })
+  momoPayUrl: string;
+
+  @Column({ nullable: true })
+  momoDeepLink: string;
+
   @ManyToOne(() => Order, (order) => order.paymentwithqrcodes)
   order: Order;
 

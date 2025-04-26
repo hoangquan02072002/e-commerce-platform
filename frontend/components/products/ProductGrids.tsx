@@ -1,134 +1,10 @@
-/* eslint-disable react-hooks/rules-of-hooks */
-/* eslint-disable react-hooks/exhaustive-deps */
-// "use client";
-// import React, { useEffect, useState, useRef, useCallback } from "react";
-// import ProductCards from "./ProductCards";
-// import axios from "axios";
-// import { throttle } from "lodash";
-// import CategorySidebar from "./CategorySidebar";
-
-// interface Category {
-//   id: number;
-//   name: string;
-// }
-
-// interface Product {
-//   id: number;
-//   name: string;
-//   price: string;
-//   image: string;
-//   stock: number;
-//   category: Category;
-// }
-
-// const ProductGrids: React.FC = () => {
-//   const [products, setProducts] = useState<Product[]>([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState<string | null>(null);
-//   const [page, setPage] = useState(1);
-//   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-//   const [hasMore, setHasMore] = useState(true);
-//   const observer = useRef<IntersectionObserver | null>(null);
-
-//   const fetchProducts = async (category: string | null, page: number) => {
-//     try {
-//       const response = await axios.get(
-//         `http://localhost:5000/product/search1`,
-//         {
-//           params: {
-//             category,
-//             page,
-//             limit: 4,
-//           },
-//         }
-//       );
-//       if (response.data.length === 0) {
-//         setHasMore(false);
-//       } else {
-//         if (page === 1) {
-//           setProducts(response.data);
-//         } else {
-//           setProducts((prevProducts) => [...prevProducts, ...response.data]);
-//         }
-//       }
-//     } catch (err) {
-//       if (err.response && err.response.status === 404) {
-//         setHasMore(false);
-//       } else {
-//         setError("Failed to fetch products");
-//       }
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (hasMore) {
-//       fetchProducts(selectedCategory, page);
-//     }
-//   }, [selectedCategory, page]);
-
-//   const lastProductRef = useCallback(
-//     throttle((node: Element) => {
-//       if (loading || !hasMore) return;
-//       if (observer.current) observer.current.disconnect();
-//       observer.current = new IntersectionObserver((entries) => {
-//         if (entries[0].isIntersecting) {
-//           setPage((prevPage) => prevPage + 1);
-//         }
-//       });
-//       if (node) observer.current.observe(node);
-//     }, 1000),
-//     [loading, hasMore]
-//   );
-
-//   if (loading && page === 1) {
-//     return <div>Loading...</div>;
-//   }
-
-//   if (error) {
-//     return <div>{error}</div>;
-//   }
-
-//   const handleCategoryClick = (category: string) => {
-//     setProducts([]);
-//     setPage(1);
-//     setSelectedCategory(category);
-//     setLoading(true);
-//     setHasMore(true);
-//   };
-
-//   return (
-//     <div className="flex justify-between">
-//       <CategorySidebar onCategoryClick={handleCategoryClick} />
-//       <div className="ml-4 max-md:max-w-full">
-//         <div className="self-start mb-10 text-lg font-bold leading-tight text-center text-black uppercase">
-//           TOP PRODUCTS
-//         </div>
-//         <div className="grid grid-cols-4 gap-10 max-md:flex-col">
-//           {products.map((product, index) => (
-//             <ProductCards
-//               key={`${product.id}-${index}`}
-//               {...product}
-//               ref={index === products.length - 1 ? lastProductRef : null}
-//             />
-//           ))}
-//         </div>
-//       </div>
-//       {loading && <div>Loading more products...</div>}
-//     </div>
-//   );
-// };
-
-// export default ProductGrids;
-
 "use client";
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import ProductCards from "./ProductCards";
 import axios from "axios";
-import { throttle, debounce, set } from "lodash";
+import { throttle, debounce } from "lodash";
 import CategorySidebar from "./CategorySidebar";
-import Spinner from "../Spinner"; // Import the Spinner component
+import Spinner from "../Spinner";
 
 interface Category {
   id: number;
@@ -182,8 +58,8 @@ const ProductGrids: React.FC = () => {
           setProducts((prevProducts) => [...prevProducts, ...response.data]);
         }
       }
-    } catch (err) {
-      if (err.response && err.response.status === 404) {
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 404) {
         setHasMore(false);
       } else {
         setError("Failed to fetch products");
@@ -200,15 +76,15 @@ const ProductGrids: React.FC = () => {
   }, [selectedCategory, page, searchTerm]);
 
   const lastProductRef = useCallback(
-    throttle((node: Element) => {
-      if (loading || !hasMore) return;
+    throttle((node: HTMLDivElement | null) => {
+      if (loading || !hasMore || !node) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
         if (entries[0].isIntersecting) {
           setPage((prevPage) => prevPage + 1);
         }
       });
-      if (node) observer.current.observe(node);
+      observer.current.observe(node);
     }, 1000),
     [loading, hasMore]
   );
@@ -222,47 +98,68 @@ const ProductGrids: React.FC = () => {
     }, 300),
     []
   );
+
   const handleSearch = () => {
-    setPage(1); // Reset to the first page on search
-    setHasMore(true); // Reset hasMore to true for new search
+    setPage(1);
+    setHasMore(true);
     fetchProducts(selectedCategory, 1, searchTerm, null, null);
-    // setSearchTerm("");
   };
 
   return (
-    <div className="flex justify-center">
-      <CategorySidebar onCategoryClick={handleCategoryClick} />
-      <div className="ml-4 max-md:max-w-full">
-        <div className="self-start mb-10 text-lg font-bold leading-tight text-center text-black uppercase">
+    <div className="flex flex-col gap-6 lg:flex-row">
+      {/* Category Sidebar - Hidden on mobile, visible on desktop */}
+      <div className="hidden w-64 lg:block">
+        <CategorySidebar onCategoryClick={handleCategoryClick} />
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="flex-1 p-2 rounded border border-gray-300"
+            />
+            <button
+              onClick={handleSearch}
+              className="px-4 py-2 text-white bg-blue-500 rounded transition-colors hover:bg-blue-600"
+            >
+              Search
+            </button>
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="mb-6 text-lg font-bold text-center text-black uppercase">
           TOP PRODUCTS
         </div>
-        <div className="mb-4">
-          <input
-            type="text"
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="p-2 rounded border border-gray-300"
-          />
-          <button
-            onClick={handleSearch}
-            className="p-2 ml-2 text-white bg-blue-500 rounded"
-          >
-            Search
-          </button>
-        </div>
-        <div className="grid grid-cols-4 gap-10 max-md:flex-col">
+
+        {/* Product Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {products.map((product, index) => (
-            <ProductCards
+            <div
               key={`${product.id}-${index}`}
-              {...product}
               ref={index === products.length - 1 ? lastProductRef : null}
-            />
+            >
+              <ProductCards {...product} />
+            </div>
           ))}
         </div>
-        {loading && <Spinner />}
+
+        {/* Loading and Error States */}
+        {loading && (
+          <div className="flex justify-center mt-4">
+            <Spinner />
+          </div>
+        )}
         {!hasMore && (
-          <div className="mt-4 text-center">No more products to load</div>
+          <div className="mt-4 text-center text-gray-500">
+            No more products to load
+          </div>
         )}
         {error && <div className="mt-4 text-center text-red-500">{error}</div>}
       </div>

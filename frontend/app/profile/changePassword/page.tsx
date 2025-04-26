@@ -10,7 +10,6 @@ import { UserProfile } from "@/lib/types";
 import Link from "next/link";
 import axios from "axios";
 import { getToken } from "@/utils/getToken";
-
 const page = () => {
   const [activeSection, setActiveSection] = useState("/");
   const [oldPassword, setOldPassword] = useState("");
@@ -23,6 +22,7 @@ const page = () => {
     phoneNumber: "+1 0231 4554 452",
     profileImage: logoprofile,
   });
+
   const sidebarItems = [
     {
       id: "",
@@ -53,6 +53,7 @@ const page = () => {
       href: "/profile/changePassword",
     },
   ];
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (name === "email") {
@@ -63,6 +64,7 @@ const page = () => {
       setOldPassword(value);
     }
   };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     e.stopPropagation();
@@ -91,30 +93,21 @@ const page = () => {
       console.log("error", error);
     }
   };
+
   return (
-    <main
-      className="p-8 bg-white rounded-xl max-md:px-5"
-      role="main"
-      aria-labelledby="profile-heading"
-    >
-      <div className="flex gap-5 justify-between items-center max-md:flex-col">
-        <div
-          className="flex flex-col w-[21%] max-md:ml-0 max-md:w-full"
-          role="complementary"
-          aria-label="Profile navigation"
-        >
-          <div className="flex flex-col px-5 py-6 mx-auto w-full text-sm text-black rounded-xl bg-neutral-50 max-md:mt-10">
+    <main className="container px-4 py-8 mx-auto md:px-6 lg:px-8">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+        <div className="lg:col-span-1">
+          <div className="p-6 bg-white rounded-xl shadow-sm">
             <ProfileImage
               src={profile.profileImage.src}
               alt={`Profile picture of ${profile.firstName} ${profile.lastName}`}
             />
-            <div className="self-start mt-5 text-xl font-bold leading-tight">
+            <div className="mt-4 text-xl font-bold">
               {`${profile.firstName} ${profile.lastName}`}
             </div>
-            <div className="self-start mt-8 leading-loose text-stone-500">
-              {profile.email}
-            </div>
-            <nav role="navigation" aria-label="Account sections">
+            <div className="mt-2 text-gray-600">{profile.email}</div>
+            <nav className="mt-6 space-y-2">
               {sidebarItems.map((item) => (
                 <Link key={item.id} href={item.href}>
                   <SidebarItem
@@ -128,63 +121,73 @@ const page = () => {
             </nav>
           </div>
         </div>
-        <div className="flex justify-center items-center w-3/4 min-h-screen bg-gray-100">
-          <div className="p-6 w-full max-w-md bg-white rounded-md shadow-md">
-            <h2 className="mb-6 text-2xl font-semibold">Forget Password</h2>
-            <form onSubmit={handleSubmit}>
-              <div className="mb-4">
+
+        <div className="lg:col-span-3">
+          <div className="p-6 bg-white rounded-xl shadow-sm">
+            <h2 className="mb-6 text-2xl font-bold text-gray-800">
+              Change Password
+            </h2>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div>
                 <label
                   htmlFor="email"
-                  className="block mb-2 text-sm font-bold text-gray-700"
+                  className="block mb-2 text-sm font-medium text-gray-700"
                 >
-                  Enter email
+                  Email Address
                 </label>
                 <input
                   type="email"
                   id="email"
                   name="email"
-                  className="p-2 w-full rounded-md border"
-                  placeholder="Enter your token"
+                  className="px-4 py-3 w-full text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Enter your email"
                   value={email}
                   onChange={handleChange}
                   required
                 />
+              </div>
+
+              <div>
                 <label
                   htmlFor="oldPassword"
-                  className="block mb-2 text-sm font-bold text-gray-700"
+                  className="block mb-2 text-sm font-medium text-gray-700"
                 >
-                  Enter old Password
+                  Current Password
                 </label>
                 <input
                   type="password"
-                  id="password"
+                  id="oldPassword"
                   name="oldPassword"
-                  className="p-2 w-full rounded-md border"
-                  placeholder="Enter your password"
+                  className="px-4 py-3 w-full text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Enter your current password"
                   value={oldPassword}
                   onChange={handleChange}
                   required
                 />
+              </div>
+
+              <div>
                 <label
-                  htmlFor="confirmPassword"
-                  className="block mb-2 text-sm font-bold text-gray-700"
+                  htmlFor="newPassword"
+                  className="block mb-2 text-sm font-medium text-gray-700"
                 >
-                  Enter new password
+                  New Password
                 </label>
                 <input
-                  type="NewPassword"
-                  id="NewPassword"
+                  type="password"
+                  id="newPassword"
                   name="newPassword"
-                  className="p-2 w-full rounded-md border"
-                  placeholder="Enter your ConfirmPassword"
+                  className="px-4 py-3 w-full text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  placeholder="Enter your new password"
                   value={newPassword}
                   onChange={handleChange}
                   required
                 />
               </div>
+
               <button
                 type="submit"
-                className="p-2 w-full text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue"
+                className="px-6 py-3 w-full text-sm font-medium text-white uppercase bg-green-600 rounded-lg transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
               >
                 Change Password
               </button>

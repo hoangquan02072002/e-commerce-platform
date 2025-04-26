@@ -124,15 +124,6 @@ export class DeviceService {
       await this.cacheManager.set(`device`, deviceInfo);
       await this.cacheManager.set(`nguyenle`, user.email);
 
-      // Throw unauthorized exception to trigger MFA
-      // throw new HttpException(
-      //   {
-      //     statusCode: HttpStatus.UNAUTHORIZED,
-      //     success: false,
-      //     message: 'MFA required due to new device login',
-      //   },
-      //   HttpStatus.UNAUTHORIZED,
-      // );
       return {
         success: 'mfa success',
         message: 'MFA required due to new device login',
@@ -158,24 +149,73 @@ export class DeviceService {
     }
   }
 
+  // async verifyMfa(
+  //   otp: string,
+  // ): Promise<{ message: string; user: Partial<User> }> {
+  //   // Verify the OTP using the MFA service
+  //   const deviceInfo = await this.cacheManager.get<{
+  //     email: string;
+  //     deviceType: string;
+  //     browser: string;
+  //     ipAddress: string;
+  //     userId: number;
+  //   }>(`device`);
+  //   const email = await this.cacheManager.get<string>('nguyenle');
+  //   if (!email) {
+  //     throw new HttpException(
+  //       'Invalid or expired OTP',
+  //       HttpStatus.UNAUTHORIZED,
+  //     );
+  //   }
+  //   const isValid = await this.mfaOtpService.verifyMfaOtp(email, otp);
+  //   if (!isValid) {
+  //     throw new HttpException(
+  //       'Invalid or expired OTP',
+  //       HttpStatus.UNAUTHORIZED,
+  //     );
+  //   }
+  //   const user = await this.findUserByEmail(email);
+
+  //   if (!user) {
+  //     throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
+  //   }
+
+  //   // Create a new device record
+  //   const newDevice = this.deviceRepository.create({
+  //     user,
+  //     deviceType: deviceInfo.deviceType, // You can retrieve this from the cache as well if needed
+  //     browser: deviceInfo.browser, // Same as above
+  //     ipAddress: deviceInfo.ipAddress, // Same as above
+  //     lastLoginAt: new Date(),
+  //   });
+
+  //   await this.deviceRepository.save(newDevice);
+
+  //   // Remove the OTP from the cache after successful verification
+  //   await this.cacheManager.del(`nguyenle`);
+
+  //   return {
+  //     message: 'MFA verification successful',
+  //     user: {
+  //       id: user.id,
+  //       name: user.name,
+  //       email: user.email,
+  //     },
+  //   };
+  // }
   async verifyMfa(
     otp: string,
   ): Promise<{ message: string; user: Partial<User> }> {
-    // Verify the OTP using the MFA service
-    const deviceInfo = await this.cacheManager.get<{
-      email: string;
-      deviceType: string;
-      browser: string;
-      ipAddress: string;
-      userId: number;
-    }>(`device`);
+    // First get the email from cache
     const email = await this.cacheManager.get<string>('nguyenle');
     if (!email) {
       throw new HttpException(
-        'Invalid or expired OTP',
+        'Invalid or expired OTP session',
         HttpStatus.UNAUTHORIZED,
       );
     }
+
+    // Verify the OTP using the MFA service
     const isValid = await this.mfaOtpService.verifyMfaOtp(email, otp);
     if (!isValid) {
       throw new HttpException(
@@ -183,18 +223,34 @@ export class DeviceService {
         HttpStatus.UNAUTHORIZED,
       );
     }
-    const user = await this.findUserByEmail(email);
 
+    // Get the user
+    const user = await this.findUserByEmail(email);
     if (!user) {
       throw new HttpException('User not found', HttpStatus.UNAUTHORIZED);
     }
 
-    // Create a new device record
+    // Try to get device info from cache
+    const deviceInfo = await this.cacheManager.get<{
+      email: string;
+      deviceType: string;
+      browser: string;
+      ipAddress: string;
+      userId: number;
+      visitorId: string;
+      userAgent: string;
+      geoLocation?: string;
+    }>(`device`);
+
+    // Create a new device record with fallback values if cache is missing
     const newDevice = this.deviceRepository.create({
       user,
-      deviceType: deviceInfo.deviceType, // You can retrieve this from the cache as well if needed
-      browser: deviceInfo.browser, // Same as above
-      ipAddress: deviceInfo.ipAddress, // Same as above
+      deviceType: deviceInfo?.deviceType || 'Unknown Device',
+      browser: deviceInfo?.browser || 'Unknown Browser',
+      ipAddress: deviceInfo?.ipAddress || '0.0.0.0',
+      visitorId: deviceInfo?.visitorId,
+      geoLocation: deviceInfo?.geoLocation || 'Unknown Location',
+      userAgent: deviceInfo?.userAgent || 'Unknown User Agent',
       lastLoginAt: new Date(),
     });
 
@@ -202,6 +258,7 @@ export class DeviceService {
 
     // Remove the OTP from the cache after successful verification
     await this.cacheManager.del(`nguyenle`);
+    await this.cacheManager.del(`device`);
 
     return {
       message: 'MFA verification successful',
@@ -209,32 +266,83 @@ export class DeviceService {
         id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     };
   }
 
-  // async handleDeviceLogin(
-  //   user: User,
-  //   deviceType: string,
-  //   browser: string,
-  //   ipAddress: string,
-  // ) {
-  //   // Check if the device is new
-  //   const isNewDevice = await this.isNewDevice(user, deviceType, browser);
+  async checkAndSaveDevice(
+    user: User,
+    visitorId: string,
+    userAgent: string,
+    ipAddress: string,
+    geoLocation: string,
+  ) {
+    const existing = await this.deviceRepository.findOne({
+      where: {
+        user: { id: user.id },
+        visitorId,
+        userAgent,
+        ipAddress,
+      },
+    });
 
-  //   if (isNewDevice) {
-  //     // New device detected, trigger MFA
-  //     await this.mfaOtpService.createMfaOtp(user.email);
-  //     await this.cacheManager.set(`nguyenle`, user.email); //
-  //     return {
-  //       status: 'success sent code to email',
-  //       message: 'MFA code sent to your email',
-  //     };
-  //   }
+    if (existing) {
+      existing.lastLoginAt = new Date();
+      existing.ipAddress = ipAddress;
+      existing.geoLocation = geoLocation;
+      existing.userAgent = userAgent;
+      await this.deviceRepository.save(existing);
+      return { known: true };
+    }
 
-  //   // Update last login info for the device
-  //   await this.updateDeviceInfo(user, deviceType, browser, ipAddress);
-  // }
+    // const newDevice = this.deviceRepository.create({
+    //   user,
+    //   visitorId,
+    //   userAgent,
+    //   ipAddress,
+    //   geoLocation,
+    //   browser,
+    //   deviceType,
+    //   lastLoginAt: new Date(),
+    // });
+
+    // await this.deviceRepository.save(newDevice);
+    return { known: false };
+  }
+  async saveDeviceInfoToCache(
+    email: string,
+    deviceType: string,
+    userAgent: string,
+    ipAddress: string,
+    geoLocation: any,
+    userId: number,
+    visitorId: string, // visitorId is FingerprintJS ID
+  ) {
+    await this.cacheManager.set(`device`, {
+      email,
+      deviceType,
+      browser: userAgent, // Assuming userAgent contains browser info
+      ipAddress,
+      userId,
+      visitorId, // Store FingerprintJS ID in cache
+      userAgent,
+      geoLocation,
+    });
+  }
+  private extractBrowser(userAgent: string): string {
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari')) return 'Safari';
+    if (userAgent.includes('Edge')) return 'Edge';
+    return 'Unknown';
+  }
+
+  private extractDeviceType(userAgent: string): string {
+    if (/mobile/i.test(userAgent)) return 'Mobile';
+    if (/tablet/i.test(userAgent)) return 'Tablet';
+    return 'Desktop';
+  }
 
   private async isNewDevice(
     user: User,

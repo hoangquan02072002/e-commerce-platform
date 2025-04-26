@@ -17,6 +17,7 @@ const ResetPassword: React.FC = () => {
       setConfirmPassword(value);
     }
   };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -42,62 +43,71 @@ const ResetPassword: React.FC = () => {
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <div className="p-6 w-full max-w-md bg-white rounded-md shadow-md">
-        <h2 className="mb-6 text-2xl font-semibold">Forget Password</h2>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
+      <div className="p-6 mx-4 w-full max-w-md bg-white rounded-xl shadow-md md:mx-0">
+        <h2 className="mb-6 text-2xl font-bold text-center text-gray-800">
+          Reset Password
+        </h2>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
             <label
               htmlFor="token"
-              className="block mb-2 text-sm font-bold text-gray-700"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
               Enter Token
             </label>
             <input
-              type="token"
+              type="text"
               id="token"
               name="token"
-              className="p-2 w-full rounded-md border"
+              className="px-4 py-3 w-full text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
               placeholder="Enter your token"
               value={token}
               onChange={handleChange}
               required
             />
+          </div>
+
+          <div>
             <label
               htmlFor="newPassword"
-              className="block mb-2 text-sm font-bold text-gray-700"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
-              Enter New Password
+              New Password
             </label>
             <input
               type="password"
-              id="password"
+              id="newPassword"
               name="newPassword"
-              className="p-2 w-full rounded-md border"
-              placeholder="Enter your password"
+              className="px-4 py-3 w-full text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              placeholder="Enter your new password"
               value={newPassword}
               onChange={handleChange}
               required
             />
+          </div>
+
+          <div>
             <label
               htmlFor="confirmPassword"
-              className="block mb-2 text-sm font-bold text-gray-700"
+              className="block mb-2 text-sm font-medium text-gray-700"
             >
-              Enter confirm password
+              Confirm Password
             </label>
             <input
-              type="ConfirmPassword"
-              id="ConfirmPassword"
+              type="password"
+              id="confirmPassword"
               name="confirmPassword"
-              className="p-2 w-full rounded-md border"
-              placeholder="Enter your ConfirmPassword"
+              className="px-4 py-3 w-full text-sm rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              placeholder="Confirm your new password"
               value={confirmPassword}
               onChange={handleChange}
               required
             />
           </div>
+
           <button
             type="submit"
-            className="p-2 w-full text-white bg-blue-500 rounded-md hover:bg-blue-600 focus:outline-none focus:shadow-outline-blue"
+            className="px-6 py-3 w-full text-sm font-medium text-white uppercase bg-green-600 rounded-lg transition-colors hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
           >
             Reset Password
           </button>

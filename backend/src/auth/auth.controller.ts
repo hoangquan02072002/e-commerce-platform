@@ -5,7 +5,9 @@ import {
   HttpException,
   HttpStatus,
   Post,
+  Req,
   Request,
+  UnauthorizedException,
   UseGuards,
 } from '@nestjs/common';
 import { Request as ExpressRequest } from 'express';
@@ -23,6 +25,7 @@ import { MfaOtpService } from './../mfa-otp/mfa-otp.service';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { User } from 'src/users/entities/user.entity';
 import { DeviceService } from '../device/device.service';
+import { LoginDto } from './dto/login.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -54,54 +57,105 @@ export class AuthController {
   //   return this.authService.login(user);
   // }
 
+  // @UseGuards(LocalAuthGuard)
+  // @Post('login')
+  // async login(@Request() request) {
+  //   const user = request.user as User;
+  //   const deviceType = request.headers['device-type'];
+  //   const browser = request.headers['user-agent'];
+  //   const ipAddress = request.ip;
+
+  //   try {
+  //     const result = await this.deviceService.handleDeviceLogin(
+  //       user,
+  //       deviceType,
+  //       browser,
+  //       ipAddress,
+  //     );
+  //     if (result.success === 'mfa success') {
+  //       return { success: 'mfa success' };
+  //     }
+  //     const users = request.user as User;
+  //     const user_info = await this.authService.login(users);
+  //     return {
+  //       user_info,
+  //       success: 'login success',
+  //     };
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       error.message,
+  //       error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Request() request) {
-    const user = request.user as User;
-    const deviceType = request.headers['device-type'];
-    const browser = request.headers['user-agent'];
-    const ipAddress = request.ip;
+  async login(@Body() body: LoginDto, @Req() req: Request) {
+    const { email, password, visitorId } = body;
+    const user = await this.usersService.validateUser(email, password);
 
-    try {
-      const result = await this.deviceService.handleDeviceLogin(
-        user,
-        deviceType,
-        browser,
-        ipAddress,
-      );
-      if (result.success === 'mfa success') {
-        return { success: 'mfa success' };
-      }
-      const users = request.user as User;
-      const user_info = await this.authService.login(users);
-      return {
-        user_info,
-        success: 'login success',
-      };
-    } catch (error) {
-      throw new HttpException(
-        error.message,
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
+    if (!user) throw new UnauthorizedException();
+
+    const userAgent = req.headers['user-agent'] || '';
+    const deviceType =
+      req.headers['device-type'] || this.detectDeviceType(userAgent);
+    const loginResult = await this.authService.validateLogin(
+      user,
+      visitorId,
+      deviceType,
+      userAgent,
+      req,
+    );
+    return loginResult;
   }
 
+  private detectDeviceType(userAgent: string): string {
+    if (!userAgent) return 'Unknown';
+
+    if (/mobile/i.test(userAgent)) return 'Mobile';
+    if (/tablet/i.test(userAgent)) return 'Tablet';
+    if (/ipad/i.test(userAgent)) return 'Tablet';
+    if (userAgent.includes('Postman')) return 'API Testing Tool';
+
+    return 'Desktop';
+  }
   @Post('verify-mfa-device')
   async verifyMfa(@Request() request, @Body() body: { otp: string }) {
     try {
+      // Get the visitorId from the request body or generate a fallback
+      // Pass the visitorId to the verifyMfa method
       const { user } = await this.deviceService.verifyMfa(body.otp);
       const user_info = await this.authService.login(user as User);
+
       return {
         user_info,
         success: 'login success',
       };
     } catch (error) {
+      console.log(error);
       throw new HttpException(
         error.message,
         error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
+
+  // @Post('verify-mfa-device')
+  // async verifyMfa(@Request() request, @Body() body: { otp: string }) {
+  //   try {
+  //     const { user } = await this.deviceService.verifyMfa(body.otp);
+  //     const user_info = await this.authService.login(user as User);
+  //     return {
+  //       user_info,
+  //       success: 'login success',
+  //     };
+  //   } catch (error) {
+  //     throw new HttpException(
+  //       error.message,
+  //       error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+  //     );
+  //   }
+  // }
 
   // implement fake ip and vpn for login
   // @UseGuards(LocalAuthGuard)

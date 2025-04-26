@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './database/database.module';
@@ -28,6 +28,10 @@ import { PaymentwithqrcodeModule } from './paymentwithqrcode/paymentwithqrcode.m
 import { Paymentwithqrcode } from './paymentwithqrcode/entities/paymentwithqrcode.entity';
 import { DeviceModule } from './device/device.module';
 import { Device } from './device/entities/device.entity';
+// import { ChatappModule } from './chatapp/chatapp.module';
+import { ChatMessage } from './chatapp/entities/chatapp.entity';
+import { IpLocationMiddleware } from './middleware/ip-location.middleware';
+// import { ChatModule } from './chatgateway/chat.module';
 
 @Module({
   imports: [
@@ -55,6 +59,7 @@ import { Device } from './device/entities/device.entity';
           MfaOtp,
           Paymentwithqrcode,
           Device,
+          ChatMessage,
           // ... other entities ...
         ],
         synchronize: true, // Disable in production
@@ -88,9 +93,16 @@ import { Device } from './device/entities/device.entity';
     MfaOtpModule,
     PaymentwithqrcodeModule,
     DeviceModule,
+    // ChatappModule,
+    // ChatModule,
     // ... other modules ...
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(IpLocationMiddleware).forRoutes('*');
+  }
+}
+// export class AppModule {}

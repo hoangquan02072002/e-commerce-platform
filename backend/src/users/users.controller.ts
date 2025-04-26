@@ -15,6 +15,8 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Roles } from 'src/auth/strategies/roles.decorator';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
 // import { CreateUserDto } from './dto/create-user.dto';
 // import { CreateUserDto } from './dto/create-user.dto';
 // import { UpdateUserDto } from './dto/update-user.dto';
@@ -39,6 +41,8 @@ export class UsersController {
   // }
 
   // UseGuards(JwtAuthGuard);
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
   @Get('all')
   async findAll() {
     return this.usersService.findAll();

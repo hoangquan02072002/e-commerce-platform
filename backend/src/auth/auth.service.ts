@@ -22,6 +22,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import axios from 'axios';
+import { DeviceService } from '../device/device.service';
 @Injectable()
 export class AuthService {
   private readonly cachePrefix = 'user_';
@@ -32,6 +33,8 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly mfaOtpService: MfaOtpService,
+    private readonly deviceService: DeviceService,
+
     private emailService: EmailService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
@@ -57,7 +60,88 @@ export class AuthService {
       },
     };
   }
+  async validateLogin(
+    user: User,
+    visitorId: string,
+    deviceType: string,
+    userAgent: string,
+    req: Request,
+  ) {
+    const ipAddress =
+      req['ipAddress'] || req.headers['x-forwarded-for'] || 'Unknown';
+    const geo = req['geo']
+      ? `${req['geo'].city}, ${req['geo'].country}`
+      : 'Unknown Location';
 
+    console.log('IP Address:', ipAddress);
+    console.log('Geo information:', req['geo']);
+
+    const { known } = await this.deviceService.checkAndSaveDevice(
+      user,
+      visitorId,
+      userAgent,
+      ipAddress,
+      geo,
+    );
+
+    if (!known) {
+      await this.mfaOtpService.createMfaOtp(user.email);
+      const deviceInfo = {
+        email: user.email,
+        deviceType: deviceType || 'Unknown Device',
+        browser: this.extractBrowserInfo(userAgent) || 'Unknown Browser',
+        ipAddress: ipAddress || 'Unknown IP',
+        userAgent: userAgent || 'Unknown User Agent hihi',
+        geoLocation: geo || 'Unknown Location',
+        userId: user.id,
+        visitorId: visitorId,
+      };
+      await this.cacheManager.set(`device`, deviceInfo);
+      await this.cacheManager.set(`nguyenle`, user.email);
+      return {
+        success: 'mfa success',
+        message: 'MFA required due to new device login',
+        requireMfa: true,
+      };
+    }
+    // thiết bị đã biết → cấp token
+    // const token = this.jwtService.sign({ sub: user.id });
+    const payload = { email: user.email, sub: user.id, name: user.name };
+    return {
+      user_info: {
+        access_token: this.jwtService.sign(payload),
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      },
+      success: 'login success',
+      // access_token: this.jwtService.sign(payload),
+      // success: 'login success',
+      // user_info: {
+      //   id: user.id,
+      //   name: user.name,
+      //   email: user.email,
+      //   role: user.role,
+      // },
+    };
+  }
+  private extractBrowserInfo(userAgent: string): string {
+    if (!userAgent) return 'Unknown';
+
+    if (userAgent.includes('Chrome')) return 'Chrome';
+    if (userAgent.includes('Firefox')) return 'Firefox';
+    if (userAgent.includes('Safari')) return 'Safari';
+    if (userAgent.includes('Edge')) return 'Edge';
+    if (userAgent.includes('Opera')) return 'Opera';
+    if (userAgent.includes('Postman')) return 'Postman';
+    if (userAgent.includes('MSIE') || userAgent.includes('Trident/'))
+      return 'Internet Explorer';
+
+    return 'Unknown Browser';
+  }
   // implement fake ip and vpn for login
   // async login(
   //   user: User,
