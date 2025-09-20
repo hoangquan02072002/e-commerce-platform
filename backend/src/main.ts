@@ -4,6 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 // import { rateLimiterMiddleware } from './middleware/rateLimiter';
 import * as bodyParser from 'body-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { MicroserviceOptions, Transport } from '@nestjs/microservices';
+import { IpLocationMiddleware } from './middleware/ip-location.middleware';
 
 // import { RawBodyMiddleware } from './middleware/raw-body.middleware';
 async function bootstrap() {
@@ -17,7 +19,17 @@ async function bootstrap() {
       allowedHeaders: ['Content-Type', 'Authorization'],
     },
   });
-
+  // app.connectMicroservice<MicroserviceOptions>({
+  //   transport: Transport.KAFKA,
+  //   options: {
+  //     client: {
+  //       brokers: ['localhost:29092'],
+  //     },
+  //     consumer: {
+  //       groupId: 'order-consumer-group',
+  //     },
+  //   },
+  // });
   app.enableCors({
     origin: 'http://localhost:3000', // Allow requests from this origin
     credentials: true,
@@ -38,6 +50,8 @@ async function bootstrap() {
   );
   // app.use(new RawBodyMiddleware().use);
   // app.use(rateLimiterMiddleware);
+  await app.startAllMicroservices();
+  app.use(new IpLocationMiddleware().use.bind(new IpLocationMiddleware()));
   await app.listen(process.env.PORT ?? 3000);
   // const port = process.env.PORT ?? 5000;
   // await app.listen(port);

@@ -24,6 +24,7 @@ import { FaExclamationCircle } from "react-icons/fa";
 import { AppDispatch, RootState } from "@/redux/store";
 import { logout } from "@/redux/user/loginSlice";
 import axios from "axios";
+import ChatBadge from "./userchat/ChatBadge";
 
 interface Category {
   id: number;
@@ -46,9 +47,12 @@ const Navbar: React.FC<NavbarProps> = ({
   const [categories, setCategories] = useState<Category[]>([]);
   const cartItems = useSelector(selectCartItems);
   const dispatch = useDispatch<AppDispatch>();
-  const user_info = useSelector(
-    (state: RootState) => state.userLogin.user?.user_info.user
-  );
+  // const user_info = useSelector(
+  //   (state: RootState) => state.userLogin.user?.user_info.user
+  // );
+  const user_info = useSelector((state: RootState) => state.userLogin.user);
+  // const userState = useSelector((state: RootState) => state.userLogin);
+  // const user_info = userState?.user?.user_info?.user || null;
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Close menu when clicking outside
@@ -90,18 +94,26 @@ const Navbar: React.FC<NavbarProps> = ({
     e.preventDefault();
     window.location.href = "/getuser";
   };
+  const getAllProducts = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    window.location.href = "/getproducts";
+  };
 
   return (
     <div className="p-4 md:p-6">
       {/* Top Bar */}
-      <div className="flex flex-col gap-4 justify-between items-center mb-4 md:flex-row">
-        <div className="flex gap-2 items-center">
+      <div className="flex flex-col items-center justify-between gap-4 mb-4 md:flex-row">
+        <div className="flex items-center gap-2">
           <div className="bg-[#EBEEF6] py-2 px-4 text-xs rounded-lg text-center">
             Hotline 24/7
           </div>
+          <Link href="/chat" className="flex items-center">
+            Messages
+            <ChatBadge />
+          </Link>
           <span className="text-xs font-bold">8968 476 5358</span>
         </div>
-        <div className="flex gap-4 items-center">
+        <div className="flex items-center gap-4">
           <div className="hidden gap-4 md:flex">
             <div className="text-xs">Sell on SWoo</div>
             <div className="text-xs">Order Tracking</div>
@@ -138,8 +150,8 @@ const Navbar: React.FC<NavbarProps> = ({
       </div>
 
       {/* Main Navigation */}
-      <div className="flex flex-col gap-4 justify-between items-center mb-4 md:flex-row">
-        <div className="flex justify-between items-center w-full md:w-auto">
+      <div className="flex flex-col items-center justify-between gap-4 mb-4 md:flex-row">
+        <div className="flex items-center justify-between w-full md:w-auto">
           <Image
             src={logo}
             width={161}
@@ -243,7 +255,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <>
                 <Link
                   href="/profile"
-                  className="flex gap-2 items-center"
+                  className="flex items-center gap-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <AiFillProfile className="w-6 h-6" />
@@ -284,7 +296,7 @@ const Navbar: React.FC<NavbarProps> = ({
               <>
                 <Link
                   href="/login"
-                  className="flex gap-2 items-center"
+                  className="flex items-center gap-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <RiLoginBoxFill className="w-6 h-6" />
@@ -292,7 +304,7 @@ const Navbar: React.FC<NavbarProps> = ({
                 </Link>
                 <Link
                   href="/register"
-                  className="flex gap-2 items-center"
+                  className="flex items-center gap-2"
                   onClick={() => setIsMenuOpen(false)}
                 >
                   <FaRegistered className="w-6 h-6" />
@@ -302,11 +314,11 @@ const Navbar: React.FC<NavbarProps> = ({
             )}
             <Link
               href="/cart"
-              className="flex relative gap-2 items-center"
+              className="relative flex items-center gap-2"
               onClick={() => setIsMenuOpen(false)}
             >
               {cartItems.length > 0 && (
-                <FaExclamationCircle className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full" />
+                <FaExclamationCircle className="absolute text-white bg-red-500 rounded-full -top-2 -right-2" />
               )}
               <FaCartArrowDown className="w-6 h-6" />
               <span>Cart ({cartItems.length})</span>
@@ -315,9 +327,9 @@ const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Desktop User Actions */}
-        <div className="hidden gap-4 items-center md:flex">
+        <div className="items-center hidden gap-4 md:flex">
           {user_info?.role === "user" ? (
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Select>
                 <SelectTrigger className="w-[180px] bg-red-600 text-white">
                   <SelectValue placeholder={user_info?.email} />
@@ -332,22 +344,22 @@ const Navbar: React.FC<NavbarProps> = ({
                   </SelectGroup>
                 </SelectContent>
               </Select>
-              <Link href="/profile" className="flex gap-2 items-center">
+              <Link href="/profile" className="flex items-center gap-2">
                 <AiFillProfile className="w-6 h-6" />
                 <span>Profile</span>
               </Link>
               <Link href="/cart" className="relative">
                 {cartItems.length > 0 && (
-                  <FaExclamationCircle className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full" />
+                  <FaExclamationCircle className="absolute text-white bg-red-500 rounded-full -top-2 -right-2" />
                 )}
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <FaCartArrowDown className="w-6 h-6" />
                   <span>Cart ({cartItems.length})</span>
                 </div>
               </Link>
             </div>
           ) : user_info?.role === "admin" ? (
-            <div className="flex gap-4 items-center">
+            <div className="flex items-center gap-4">
               <Select>
                 <SelectTrigger className="w-[180px] bg-red-600 text-white">
                   <SelectValue placeholder={user_info?.email} />
@@ -369,25 +381,33 @@ const Navbar: React.FC<NavbarProps> = ({
                         All Users
                       </button>
                     </SelectLabel>
+                    <SelectLabel>
+                      <button
+                        onClick={getAllProducts}
+                        className="px-3 text-base"
+                      >
+                        All Products
+                      </button>
+                    </SelectLabel>
                   </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
           ) : (
-            <div className="flex gap-4 items-center">
-              <Link href="/login" className="flex gap-2 items-center">
+            <div className="flex items-center gap-4">
+              <Link href="/login" className="flex items-center gap-2">
                 <RiLoginBoxFill className="w-6 h-6" />
                 <span>Login</span>
               </Link>
-              <Link href="/register" className="flex gap-2 items-center">
+              <Link href="/register" className="flex items-center gap-2">
                 <FaRegistered className="w-6 h-6" />
                 <span>Register</span>
               </Link>
               <Link href="/cart" className="relative">
                 {cartItems.length > 0 && (
-                  <FaExclamationCircle className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full" />
+                  <FaExclamationCircle className="absolute text-white bg-red-500 rounded-full -top-2 -right-2" />
                 )}
-                <div className="flex gap-2 items-center">
+                <div className="flex items-center gap-2">
                   <FaCartArrowDown className="w-6 h-6" />
                   <span>Cart ({cartItems.length})</span>
                 </div>
@@ -399,8 +419,8 @@ const Navbar: React.FC<NavbarProps> = ({
 
       {/* Search Bar */}
       <div className="bg-[#1ABA1A] p-4 rounded-xl">
-        <div className="flex flex-col gap-4 justify-between items-center md:flex-row">
-          <div className="flex flex-col gap-4 items-center w-full md:flex-row md:w-auto">
+        <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+          <div className="flex flex-col items-center w-full gap-4 md:flex-row md:w-auto">
             <Select onValueChange={onCategoryClick} value={selectedCategory}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="All Categories" />
@@ -544,14 +564,14 @@ export default Navbar;
 //   return (
 //     <div className="p-4 md:p-6">
 //       {/* Top Bar */}
-//       <div className="flex flex-col gap-4 justify-between items-center mb-4 md:flex-row">
-//         <div className="flex gap-2 items-center">
+//       <div className="flex flex-col items-center justify-between gap-4 mb-4 md:flex-row">
+//         <div className="flex items-center gap-2">
 //           <div className="bg-[#EBEEF6] py-2 px-4 text-xs rounded-lg text-center">
 //             Hotline 24/7
 //           </div>
 //           <span className="text-xs font-bold">8968 476 5358</span>
 //         </div>
-//         <div className="flex gap-4 items-center">
+//         <div className="flex items-center gap-4">
 //           <div className="hidden gap-4 md:flex">
 //             <div className="text-xs">Sell on SWoo</div>
 //             <div className="text-xs">Order Tracking</div>
@@ -588,8 +608,8 @@ export default Navbar;
 //       </div>
 
 //       {/* Main Navigation */}
-//       <div className="flex flex-col gap-4 justify-between items-center mb-4 md:flex-row">
-//         <div className="flex justify-between items-center w-full md:w-auto">
+//       <div className="flex flex-col items-center justify-between gap-4 mb-4 md:flex-row">
+//         <div className="flex items-center justify-between w-full md:w-auto">
 //           <Link href="/">
 //             <Image
 //               src={logo}
@@ -697,7 +717,7 @@ export default Navbar;
 //               <>
 //                 <Link
 //                   href="/profile"
-//                   className="flex gap-2 items-center"
+//                   className="flex items-center gap-2"
 //                   onClick={() => setIsMenuOpen(false)}
 //                 >
 //                   <AiFillProfile className="w-6 h-6" />
@@ -747,7 +767,7 @@ export default Navbar;
 //               <>
 //                 <Link
 //                   href="/login"
-//                   className="flex gap-2 items-center"
+//                   className="flex items-center gap-2"
 //                   onClick={() => setIsMenuOpen(false)}
 //                 >
 //                   <RiLoginBoxFill className="w-6 h-6" />
@@ -755,7 +775,7 @@ export default Navbar;
 //                 </Link>
 //                 <Link
 //                   href="/register"
-//                   className="flex gap-2 items-center"
+//                   className="flex items-center gap-2"
 //                   onClick={() => setIsMenuOpen(false)}
 //                 >
 //                   <FaRegistered className="w-6 h-6" />
@@ -765,11 +785,11 @@ export default Navbar;
 //             )}
 //             <Link
 //               href="/cart"
-//               className="flex relative gap-2 items-center"
+//               className="relative flex items-center gap-2"
 //               onClick={() => setIsMenuOpen(false)}
 //             >
 //               {cartItems.length > 0 && (
-//                 <FaExclamationCircle className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full" />
+//                 <FaExclamationCircle className="absolute text-white bg-red-500 rounded-full -top-2 -right-2" />
 //               )}
 //               <FaCartArrowDown className="w-6 h-6" />
 //               <span>Cart ({cartItems.length})</span>
@@ -778,9 +798,9 @@ export default Navbar;
 //         </div>
 
 //         {/* Desktop User Actions */}
-//         <div className="hidden gap-4 items-center md:flex">
+//         <div className="items-center hidden gap-4 md:flex">
 //           {user_info?.role === "user" ? (
-//             <div className="flex gap-4 items-center">
+//             <div className="flex items-center gap-4">
 //               <Select>
 //                 <SelectTrigger className="w-[180px] bg-red-600 text-white">
 //                   <SelectValue placeholder={user_info?.email} />
@@ -795,22 +815,22 @@ export default Navbar;
 //                   </SelectGroup>
 //                 </SelectContent>
 //               </Select>
-//               <Link href="/profile" className="flex gap-2 items-center">
+//               <Link href="/profile" className="flex items-center gap-2">
 //                 <AiFillProfile className="w-6 h-6" />
 //                 <span>Profile</span>
 //               </Link>
 //               <Link href="/cart" className="relative">
 //                 {cartItems.length > 0 && (
-//                   <FaExclamationCircle className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full" />
+//                   <FaExclamationCircle className="absolute text-white bg-red-500 rounded-full -top-2 -right-2" />
 //                 )}
-//                 <div className="flex gap-2 items-center">
+//                 <div className="flex items-center gap-2">
 //                   <FaCartArrowDown className="w-6 h-6" />
 //                   <span>Cart ({cartItems.length})</span>
 //                 </div>
 //               </Link>
 //             </div>
 //           ) : user_info?.role === "admin" ? (
-//             <div className="flex gap-4 items-center">
+//             <div className="flex items-center gap-4">
 //               <Select>
 //                 <SelectTrigger className="w-[180px] bg-red-600 text-white">
 //                   <SelectValue placeholder={user_info?.email} />
@@ -843,20 +863,20 @@ export default Navbar;
 //               </Select>
 //             </div>
 //           ) : (
-//             <div className="flex gap-4 items-center">
-//               <Link href="/login" className="flex gap-2 items-center">
+//             <div className="flex items-center gap-4">
+//               <Link href="/login" className="flex items-center gap-2">
 //                 <RiLoginBoxFill className="w-6 h-6" />
 //                 <span>Login</span>
 //               </Link>
-//               <Link href="/register" className="flex gap-2 items-center">
+//               <Link href="/register" className="flex items-center gap-2">
 //                 <FaRegistered className="w-6 h-6" />
 //                 <span>Register</span>
 //               </Link>
 //               <Link href="/cart" className="relative">
 //                 {cartItems.length > 0 && (
-//                   <FaExclamationCircle className="absolute -top-2 -right-2 text-white bg-red-500 rounded-full" />
+//                   <FaExclamationCircle className="absolute text-white bg-red-500 rounded-full -top-2 -right-2" />
 //                 )}
-//                 <div className="flex gap-2 items-center">
+//                 <div className="flex items-center gap-2">
 //                   <FaCartArrowDown className="w-6 h-6" />
 //                   <span>Cart ({cartItems.length})</span>
 //                 </div>
@@ -866,8 +886,8 @@ export default Navbar;
 //         </div>
 //       </div>
 //       <div className="bg-[#1ABA1A] p-4 rounded-xl">
-//         <div className="flex flex-col gap-4 justify-between items-center md:flex-row">
-//           <div className="flex flex-col gap-4 items-center w-full md:flex-row md:w-auto">
+//         <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
+//           <div className="flex flex-col items-center w-full gap-4 md:flex-row md:w-auto">
 //             <Select
 //               onValueChange={onCategoryClick}
 //               value={selectedCategory}

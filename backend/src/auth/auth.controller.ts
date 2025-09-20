@@ -26,6 +26,11 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { User } from 'src/users/entities/user.entity';
 import { DeviceService } from '../device/device.service';
 import { LoginDto } from './dto/login.dto';
+import { ActivityTrackingService } from 'src/activity-tracking-service/activity-tracking-service.service';
+
+interface AuthenticatedRequest extends ExpressRequest {
+  user?: User;
+}
 
 @Controller('auth')
 export class AuthController {
@@ -34,80 +39,146 @@ export class AuthController {
     private readonly usersService: UsersService,
     private readonly mfaOtpService: MfaOtpService,
     private readonly deviceService: DeviceService,
+    private readonly activityTrackingService: ActivityTrackingService,
     private emailService: EmailService,
   ) {}
-  @Post('register')
-  async register(@Body() createUserDto: CreateUserDto) {
-    return this.authService.registerSendMfaOtp(createUserDto);
-  }
+  // @Post('register')
+  // async register(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
+  //   return this.authService.registerSendMfaOtp(createUserDto, req);
+  // }
+  // @Post('verify-mfa')
+  // async verifyMfaOtp(
+  //   @Body()
+  //   verifyMfaDto: {
+  //     otp: string;
+  //   },
+  // ) {
+  //   return this.authService.verifyMfa(verifyMfaDto.otp);
+  // }
+
+  // implement with register improvemented
   @Post('verify-mfa')
   async verifyMfaOtp(
     @Body()
     verifyMfaDto: {
       otp: string;
+      visitorId: string;
     },
   ) {
-    return this.authService.verifyMfa(verifyMfaDto.otp);
+    return this.authService.verifyMfa(verifyMfaDto.otp, verifyMfaDto.visitorId);
   }
 
-  // @UseGuards(LocalAuthGuard)
-  // @Post('login')
-  // login(@Request() request: ExpressRequest) {
-  //   const user = request.user as User;
-  //   return this.authService.login(user);
-  // }
-
-  // @UseGuards(LocalAuthGuard)
-  // @Post('login')
-  // async login(@Request() request) {
-  //   const user = request.user as User;
-  //   const deviceType = request.headers['device-type'];
-  //   const browser = request.headers['user-agent'];
-  //   const ipAddress = request.ip;
-
-  //   try {
-  //     const result = await this.deviceService.handleDeviceLogin(
-  //       user,
-  //       deviceType,
-  //       browser,
-  //       ipAddress,
-  //     );
-  //     if (result.success === 'mfa success') {
-  //       return { success: 'mfa success' };
-  //     }
-  //     const users = request.user as User;
-  //     const user_info = await this.authService.login(users);
-  //     return {
-  //       user_info,
-  //       success: 'login success',
-  //     };
-  //   } catch (error) {
-  //     throw new HttpException(
-  //       error.message,
-  //       error.status || HttpStatus.INTERNAL_SERVER_ERROR,
-  //     );
-  //   }
-  // }
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Body() body: LoginDto, @Req() req: Request) {
-    const { email, password, visitorId } = body;
-    const user = await this.usersService.validateUser(email, password);
+  async login(@Body() body: LoginDto, @Req() req: AuthenticatedRequest) {
+    try {
+      const { email, password, visitorId } = body;
+      const user = await this.usersService.validateUser(email, password);
 
-    if (!user) throw new UnauthorizedException();
+      if (!user) throw new UnauthorizedException();
 
-    const userAgent = req.headers['user-agent'] || '';
-    const deviceType =
-      req.headers['device-type'] || this.detectDeviceType(userAgent);
-    const loginResult = await this.authService.validateLogin(
-      user,
-      visitorId,
-      deviceType,
-      userAgent,
-      req,
-    );
-    return loginResult;
+      console.log('🔐 Login request received:', {
+        userId: user.id,
+        email: user.email,
+        ipAddress: req['ipAddress'] || req.ip,
+        userAgent: req['userAgent'] || req.headers['user-agent'],
+        geo: req['geo'],
+      });
+
+      const loginResult = await this.authService.validateLogin(
+        user,
+        visitorId,
+        req,
+      );
+
+      // Track login activity regardless of result - but only if successful
+      if (loginResult.success === 'login success') {
+        console.log('✅ Login successful, tracking activity...');
+
+        try {
+          await this.activityTrackingService.trackUserLogin(
+            user.id,
+            {
+              name: user.name,
+              email: user.email,
+              loginMethod: 'email',
+              deviceType: this.detectDeviceType(
+                req.headers['user-agent'] || '',
+              ),
+            },
+            req,
+          );
+          console.log('📊 Login activity tracked successfully');
+        } catch (trackingError) {
+          console.error('❌ Error tracking login activity:', trackingError);
+          // Don't fail the login if tracking fails
+        }
+      }
+
+      return loginResult;
+    } catch (error) {
+      console.error('❌ Login error:', error);
+      throw error;
+    }
   }
+
+  // @UseGuards(LocalAuthGuard)
+  // @Post('login')
+  // async login(@Body() body: LoginDto, @Req() req: Request) {
+  //   const { email, password, visitorId } = body;
+  //   const user = await this.usersService.validateUser(email, password);
+
+  //   if (!user) throw new UnauthorizedException();
+
+  //   console.log('Login request received with middleware data:', {
+  //     ipAddress: req['ipAddress'],
+  //     userAgent: req['userAgent'],
+  //     geo: req['geo'],
+  //   });
+
+  //   const loginResult = await this.authService.validateLogin(
+  //     user,
+  //     visitorId,
+  //     req,
+  //   );
+
+  //   if (loginResult.success === 'login success') {
+  //     await this.activityTrackingService.trackUserLogin(user.id, req);
+  //   }
+  //   return loginResult;
+  // }
+
+  @Post('register')
+  async register(@Body() createUserDto: CreateUserDto, @Req() req: Request) {
+    console.log('Register request received with middleware data:', {
+      ipAddress: req['ipAddress'],
+      userAgent: req['userAgent'],
+      geo: req['geo'],
+    });
+
+    return this.authService.registerSendMfaOtp(createUserDto, req);
+  }
+
+  // @UseGuards(LocalAuthGuard)
+  // @Post('login')
+  // async login(@Body() body: LoginDto, @Req() req: Request) {
+  //   const { email, password, visitorId } = body;
+  //   const user = await this.usersService.validateUser(email, password);
+
+  //   if (!user) throw new UnauthorizedException();
+
+  //   // const userAgent = req.headers['user-agent'] || '';
+  //   // const deviceType =
+  //   //   req.headers['device-type'] || this.detectDeviceType(userAgent);
+  //   const loginResult = await this.authService.validateLogin(
+  //     user,
+  //     visitorId,
+  //     // deviceType,
+  //     // userAgent,
+  //     // req,
+  //   );
+  //   return loginResult;
+  // }
 
   private detectDeviceType(userAgent: string): string {
     if (!userAgent) return 'Unknown';

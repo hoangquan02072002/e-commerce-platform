@@ -32,6 +32,11 @@ import { Device } from './device/entities/device.entity';
 import { ChatMessage } from './chatapp/entities/chatapp.entity';
 import { IpLocationMiddleware } from './middleware/ip-location.middleware';
 // import { ChatModule } from './chatgateway/chat.module';
+import { KafkaModule } from './kafka/kafka.module';
+import { WebsocketModule } from './websocket/websocket.module';
+import { ActivityTrackingServiceModule } from './activity-tracking-service/activity-tracking-service.module';
+import { CartactivityModule } from './cartactivity/cartactivity.module';
+// import { ActivityTrackingServiceEntity } from './activity-tracking-service/entities/activity-tracking-service.entity';
 
 @Module({
   imports: [
@@ -60,6 +65,7 @@ import { IpLocationMiddleware } from './middleware/ip-location.middleware';
           Paymentwithqrcode,
           Device,
           ChatMessage,
+          // ActivityTrackingServiceEntity,
           // ... other entities ...
         ],
         synchronize: true, // Disable in production
@@ -93,6 +99,11 @@ import { IpLocationMiddleware } from './middleware/ip-location.middleware';
     MfaOtpModule,
     PaymentwithqrcodeModule,
     DeviceModule,
+    ...(process.env.KAFKA_BROKERS ? [KafkaModule] : []),
+    // KafkaModule,
+    WebsocketModule,
+    ActivityTrackingServiceModule,
+    CartactivityModule,
     // ChatappModule,
     // ChatModule,
     // ... other modules ...

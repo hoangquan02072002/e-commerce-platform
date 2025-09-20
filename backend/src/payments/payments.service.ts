@@ -73,7 +73,7 @@ export class PaymentsService {
       const session = await this.stripe.checkout.sessions.create({
         line_items: lineItems, // Use the created line items
         mode: 'payment', // Set the mode to 'payment'
-        success_url: `http://localhost:4242/success.html`, // Redirect URL on success
+        success_url: `http://localhost:3000/paymentSuccess`, // Redirect URL on success
         cancel_url: `http://localhost:4242/cancel.html`, // Redirect URL on cancellation
         metadata: {
           productIds: productIds.join(','), // Add product IDs to metadata as a comma-separated string
@@ -90,7 +90,7 @@ export class PaymentsService {
         },
       });
 
-      return session; // Return the created session
+      return session;
     } catch (error) {
       console.error('Error creating session:', error);
       throw new InternalServerErrorException(

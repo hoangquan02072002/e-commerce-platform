@@ -1,8 +1,8 @@
 import { RateLimiterMemory } from 'rate-limiter-flexible';
 
 const rateLimiter = new RateLimiterMemory({
-  points: 5, // Number of points
-  duration: 60 * 15, // Per 15 minutes
+  points: 3, // Number of points
+  duration: 60 * 2, // Per 15 minutes
 });
 
 export const rateLimiterMiddleware = (req, res, next) => {

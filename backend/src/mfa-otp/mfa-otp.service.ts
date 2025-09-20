@@ -25,6 +25,7 @@ export class MfaOtpService {
         email,
         otp,
         expires_at,
+        attempts: 0,
       });
 
       await this.mfaOtpRepository.save(mfaOtp);
@@ -51,13 +52,50 @@ export class MfaOtpService {
         order: { created_at: 'DESC' },
       });
 
-      if (!mfaOtp || new Date(mfaOtp.expires_at) < new Date()) {
+      if (!mfaOtp) {
         return false;
+      }
+
+      if (new Date(mfaOtp.expires_at) < new Date()) {
+        mfaOtp.attempts = 0;
+        await this.mfaOtpRepository.save(mfaOtp);
+        return false;
+      }
+      if ((mfaOtp.attempts ?? 0) >= 3) {
+        throw new HttpException(
+          'Maximum number of attempts exceeded. Please request a new code.',
+          HttpStatus.FORBIDDEN,
+        );
       }
       return true;
     } catch (error) {
       throw new HttpException(
         'Error verifying MFA OTP',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async incrementOtpAttempts(email: string, otp: string): Promise<void> {
+    try {
+      const mfaOtp = await this.mfaOtpRepository.findOne({
+        where: { email, otp },
+        order: { created_at: 'DESC' },
+      });
+
+      if (mfaOtp && new Date(mfaOtp.expires_at) > new Date()) {
+        mfaOtp.attempts = (mfaOtp.attempts ?? 0) + 1;
+
+        // Check if attempts exceed the limit
+        if (mfaOtp.attempts >= 3) {
+          // Block the user for 15 minutes
+          mfaOtp.blockUntil = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+        }
+
+        await this.mfaOtpRepository.save(mfaOtp);
+      }
+    } catch (error) {
+      throw new HttpException(
+        'Error incrementing OTP attempts',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

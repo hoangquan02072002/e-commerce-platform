@@ -66,15 +66,15 @@ export class ProductsController {
     @Query('category') category?: string,
     @Query('price') price?: number,
     @Query('desc') desc?: string,
-    @Query('page', ParseIntPipe) page: number = 1, // Use page instead of pageNum
-    @Query('limit', ParseIntPipe) limit: number = 10, // Ensure limit is a positive number
+    @Query('page', ParseIntPipe) page: number = 1,
+    @Query('limit', ParseIntPipe) limit: number = 10,
   ): Promise<Product[]> {
     const searchProductDto = {
       search,
       category,
       price,
       desc,
-      pageNum: page, // If you want to keep using pageNum in the DTO
+      pageNum: page,
       limit,
     };
     return this.productsService.searchProducts(searchProductDto);

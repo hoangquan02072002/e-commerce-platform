@@ -16,6 +16,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ChangePasswordModule } from './change-password/change-password.module';
 import { DeviceModule } from '../device/device.module';
+import { ActivityTrackingService } from 'src/activity-tracking-service/activity-tracking-service.service';
+import { ActivityTrackingServiceModule } from 'src/activity-tracking-service/activity-tracking-service.module';
+import { KafkaModule } from 'src/kafka/kafka.module';
 
 @Module({
   imports: [
@@ -28,6 +31,8 @@ import { DeviceModule } from '../device/device.module';
     UtilsModule,
     MfaOtpModule,
     DeviceModule,
+    KafkaModule,
+    ActivityTrackingServiceModule,
     JwtModule.register({
       secret: 'hoanguan',
       signOptions: { expiresIn: '1h' },
@@ -35,7 +40,13 @@ import { DeviceModule } from '../device/device.module';
     ChangePasswordModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, LocalStrategy, JwtStrategy, RolesGuard],
+  providers: [
+    AuthService,
+    LocalStrategy,
+    JwtStrategy,
+    RolesGuard,
+    ActivityTrackingService,
+  ],
   exports: [AuthService],
 })
 export class AuthModule {}

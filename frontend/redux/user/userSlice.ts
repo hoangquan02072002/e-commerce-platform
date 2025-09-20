@@ -120,33 +120,57 @@ export const registerUser = createAsyncThunk(
   }
 );
 
+// export const verifyOTP = createAsyncThunk(
+//   "user/verifyOTP",
+//   async (otpData: { otp: string }, { rejectWithValue }) => {
+//     try {
+//       const response = await axios.post(
+//         "http://localhost:5000/auth/verify-mfa-device",
+//         otpData
+//       );
+
+//       if (
+//         response.data.success === "login success" &&
+//         response.data.user_info.access_token
+//       ) {
+//         // Store token in localStorage
+//         localStorage.setItem(
+//           "access_token",
+//           response.data.user_info.access_token
+//         );
+//         localStorage.setItem("user", JSON.stringify(response.data));
+//         return response.data;
+//       }
+//       return response.data;
+//     } catch (error) {
+//       if (axios.isAxiosError(error) && error.response) {
+//         return rejectWithValue(error.response.data.message);
+//       }
+//       return rejectWithValue("An unexpected error occurred.");
+//     }
+//   }
+// );
+
 export const verifyOTP = createAsyncThunk(
   "user/verifyOTP",
-  async (otpData: { otp: string }, { rejectWithValue }) => {
+  async ({ otp }: { otp: string }, { rejectWithValue }) => {
     try {
       const response = await axios.post(
         "http://localhost:5000/auth/verify-mfa-device",
-        otpData
+        { otp }
       );
 
-      if (
-        response.data.success === "login success" &&
-        response.data.user_info.access_token
-      ) {
-        // Store token in localStorage
-        localStorage.setItem(
-          "access_token",
-          response.data.user_info.access_token
-        );
-        localStorage.setItem("user", JSON.stringify(response.data));
-        return response.data;
-      }
+      console.log("OTP verification response:", response.data);
+
+      // Return the complete response data
       return response.data;
     } catch (error) {
       if (axios.isAxiosError(error) && error.response) {
         return rejectWithValue(error.response.data.message);
       }
-      return rejectWithValue("An unexpected error occurred.");
+      return rejectWithValue(
+        "An unexpected error occurred during OTP verification."
+      );
     }
   }
 );
@@ -189,8 +213,28 @@ const userSlice = createSlice({
       })
       .addCase(verifyOTP.fulfilled, (state, action) => {
         state.loading = false;
-        if (action.payload.access_token) {
-          state.token = action.payload.access_token;
+        // if (action.payload.access_token) {
+        //   state.token = action.payload.access_token;
+        // }
+        if (
+          action.payload.success === "login success" &&
+          action.payload.user_info
+        ) {
+          const { access_token, user } = action.payload.user_info;
+
+          // Update the state with the user data
+          state.user = {
+            email: user.email,
+            access_token,
+            userId: user.id,
+            name: user.name,
+            role: user.role,
+          };
+
+          // Save to localStorage
+          if (typeof window !== "undefined") {
+            localStorage.setItem("user", JSON.stringify(state.user));
+          }
         }
       })
       .addCase(verifyOTP.rejected, (state, action) => {

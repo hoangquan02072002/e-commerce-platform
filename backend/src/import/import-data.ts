@@ -8,12 +8,13 @@ import { User } from '../users/entities/user.entity';
 import { Review } from '../reviews/entities/review.entity';
 import { Notification } from '../notifications/entities/notification.entity';
 import productAndCategory from './product';
+import { Device } from 'src/device/entities/device.entity';
 
 async function seedData() {
   // Kết nối đến database
   const connection = await createConnection({
     type: 'postgres',
-    host: 'localhost',
+    host: 'postgres',
     port: 5432,
     username: 'postgres',
     password: 'quannguyen2002',
@@ -27,6 +28,7 @@ async function seedData() {
       Payment,
       User,
       Review,
+      Device,
     ],
     synchronize: true, //only use in env development
   });

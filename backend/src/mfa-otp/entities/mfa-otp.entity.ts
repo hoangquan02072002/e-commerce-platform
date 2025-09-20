@@ -27,10 +27,10 @@ export class MfaOtp {
 
   @Column({ default: 0 })
   attempts: number;
-
+  @Column({ type: 'timestamp', nullable: true })
+  blockUntil: Date | null;
   @Column({ default: false })
   is_verified: boolean;
-
   @ManyToOne(() => User, (user) => user.mfaOtps)
   user: User;
   @Column({ nullable: true })

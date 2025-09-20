@@ -18,8 +18,8 @@ export class ChatMessage {
   @Column()
   roomId: string;
 
-  @ManyToOne(() => User, (user) => user.chatMessages)
-  sender: User;
+  @Column()
+  senderId: number;
 
   @Column({ nullable: true })
   recipientId: number;
@@ -29,4 +29,8 @@ export class ChatMessage {
 
   @Column({ default: false })
   isRead: boolean;
+  @ManyToOne(() => User, (user) => user.messages, { eager: false })
+  sender: User;
+  @ManyToOne(() => User, { eager: false })
+  recipient: User;
 }

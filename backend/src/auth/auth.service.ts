@@ -60,52 +60,40 @@ export class AuthService {
       },
     };
   }
-  async validateLogin(
-    user: User,
-    visitorId: string,
-    deviceType: string,
-    userAgent: string,
-    req: Request,
-  ) {
-    const ipAddress =
-      req['ipAddress'] || req.headers['x-forwarded-for'] || 'Unknown';
-    const geo = req['geo']
-      ? `${req['geo'].city}, ${req['geo'].country}`
-      : 'Unknown Location';
 
-    console.log('IP Address:', ipAddress);
-    console.log('Geo information:', req['geo']);
-
+  async validateLogin(user: User, visitorId: string, req?: any) {
     const { known } = await this.deviceService.checkAndSaveDevice(
       user,
       visitorId,
-      userAgent,
-      ipAddress,
-      geo,
+      req,
     );
 
     if (!known) {
       await this.mfaOtpService.createMfaOtp(user.email);
-      const deviceInfo = {
+
+      // Use DeviceService to extract all device information
+      const deviceInfo = this.deviceService.extractDeviceInfo(req);
+
+      const cacheDeviceInfo = {
         email: user.email,
-        deviceType: deviceType || 'Unknown Device',
-        browser: this.extractBrowserInfo(userAgent) || 'Unknown Browser',
-        ipAddress: ipAddress || 'Unknown IP',
-        userAgent: userAgent || 'Unknown User Agent hihi',
-        geoLocation: geo || 'Unknown Location',
         userId: user.id,
         visitorId: visitorId,
+        ...deviceInfo, // This includes deviceType, browser, ipAddress, geoLocation, userAgent
       };
-      await this.cacheManager.set(`device`, deviceInfo);
+
+      console.log('Caching device info:', cacheDeviceInfo);
+
+      await this.cacheManager.set(`device`, cacheDeviceInfo);
       await this.cacheManager.set(`nguyenle`, user.email);
+
       return {
         success: 'mfa success',
         message: 'MFA required due to new device login',
         requireMfa: true,
       };
     }
-    // thiết bị đã biết → cấp token
-    // const token = this.jwtService.sign({ sub: user.id });
+
+    // Device is known, proceed with login
     const payload = { email: user.email, sub: user.id, name: user.name };
     return {
       user_info: {
@@ -118,173 +106,13 @@ export class AuthService {
         },
       },
       success: 'login success',
-      // access_token: this.jwtService.sign(payload),
-      // success: 'login success',
-      // user_info: {
-      //   id: user.id,
-      //   name: user.name,
-      //   email: user.email,
-      //   role: user.role,
-      // },
     };
   }
-  private extractBrowserInfo(userAgent: string): string {
-    if (!userAgent) return 'Unknown';
 
-    if (userAgent.includes('Chrome')) return 'Chrome';
-    if (userAgent.includes('Firefox')) return 'Firefox';
-    if (userAgent.includes('Safari')) return 'Safari';
-    if (userAgent.includes('Edge')) return 'Edge';
-    if (userAgent.includes('Opera')) return 'Opera';
-    if (userAgent.includes('Postman')) return 'Postman';
-    if (userAgent.includes('MSIE') || userAgent.includes('Trident/'))
-      return 'Internet Explorer';
-
-    return 'Unknown Browser';
-  }
-  // implement fake ip and vpn for login
-  // async login(
-  //   user: User,
-  //   ip: string,
-  //   userAgent: string,
-  // ): Promise<{
-  //   access_token: string;
-  //   success: string;
-  //   user: Partial<User>;
-  // }> {
-  //   if (!user) {
-  //     throw new UnauthorizedException('Invalid credentials');
-  //   }
-
-  //   const ipInfo = await this.checkIpGeolocation(ip);
-  //   console.log('IP Info:', ipInfo);
-
-  //   // Check if the user is using a VPN or proxy
-  //   if (ipInfo.is_vpn) {
-  //     await this.mfaOtpService.createMfaOtp(user.email); // Send MFA OTP
-  //     throw new HttpException(
-  //       'MFA required due to suspicious login',
-  //       HttpStatus.UNAUTHORIZED,
-  //     );
-  //   }
-
-  //   // Log device and browser information
-  //   console.log(`User Agent: ${userAgent}`);
-
-  //   const payload = { email: user.email, sub: user.id, name: user.name };
-  //   return {
-  //     access_token: this.jwtService.sign(payload),
-  //     success: 'login success',
-  //     user: {
-  //       id: user.id,
-  //       name: user.name,
-  //       email: user.email,
-  //     },
-  //   };
-  // }
-
-  // async verifyMfaIp(email: string, otp: string): Promise<{ message: string }> {
-  //   const isValid = await this.mfaOtpService.verifyMfaOtp(email, otp);
-  //   if (!isValid) {
-  //     throw new HttpException(
-  //       'Invalid or expired OTP',
-  //       HttpStatus.UNAUTHORIZED,
-  //     );
-  //   }
-
-  //   return { message: 'MFA verification successful' };
-  // }
-  // private async checkIpGeolocation(ip: string) {
-  //   try {
-  //     // If the IP is an IPv6 loopback address or localhost, use a default IPv4 address for testing
-  //     if (ip === '::1' || ip === 'localhost' || ip === '127.0.0.1') {
-  //       ip = '8.8.8.8'; // Use Google's DNS as a fallback for testing
-  //     }
-
-  //     // Remove IPv6 prefix if present
-  //     ip = ip.replace('::ffff:', '');
-
-  //     // Check if the IP is valid
-  //     if (!ip || ip === 'undefined') {
-  //       throw new Error('Invalid IP address');
-  //     }
-
-  //     // Use a more reliable geolocation API
-  //     const url = `https://ipapi.co/${ip}/json/`; // No API key required for basic use
-  //     const { data } = await axios.get(url);
-
-  //     // Check if the API returned an error
-  //     if (data.error) {
-  //       console.error('IP API Error:', data.error);
-  //       throw new Error(`IP API Error: ${data.error}`);
-  //     }
-
-  //     // For testing purposes, we'll consider certain IP ranges as VPN/proxy
-  //     // In a production environment, you would use a paid API that provides this information
-  //     const isVpn = this.isLikelyVpn(ip, data);
-
-  //     return {
-  //       ip: data.ip,
-  //       city: data.city,
-  //       region: data.region,
-  //       country: data.country_name,
-  //       country_code: data.country,
-  //       latitude: data.latitude,
-  //       longitude: data.longitude,
-  //       org: data.org,
-  //       postal: data.postal,
-  //       timezone: data.timezone,
-  //       is_eu: data.in_eu,
-  //       is_vpn: isVpn,
-  //     };
-  //   } catch (error) {
-  //     console.error('Error fetching IP geolocation:', error);
-  //     throw new HttpException(
-  //       'Could not verify IP',
-  //       HttpStatus.INTERNAL_SERVER_ERROR,
-  //     );
-  //   }
-  // }
-
-  // // Helper method to determine if an IP is likely a VPN/proxy
-  // private isLikelyVpn(ip: string, data: any): boolean {
-  //   // This is a simplified check for demonstration purposes
-  //   // In a production environment, you would use a paid API that provides this information
-
-  //   // Check if the organization name contains VPN-related keywords
-  //   if (
-  //     data.org &&
-  //     (data.org.toLowerCase().includes('vpn') ||
-  //       data.org.toLowerCase().includes('proxy') ||
-  //       data.org.toLowerCase().includes('hosting') ||
-  //       data.org.toLowerCase().includes('datacenter'))
-  //   ) {
-  //     return true;
-  //   }
-
-  //   // Check if the IP is from a known datacenter range
-  //   // This is a very simplified check and not reliable for production use
-  //   const ipParts = ip.split('.');
-  //   if (ipParts.length === 4) {
-  //     const firstOctet = parseInt(ipParts[0], 10);
-  //     const secondOctet = parseInt(ipParts[1], 10);
-
-  //     // Some common datacenter IP ranges (simplified)
-  //     if (
-  //       (firstOctet === 8 && secondOctet === 8) || // Google DNS
-  //       (firstOctet === 13 && secondOctet >= 107 && secondOctet <= 108) || // AWS
-  //       (firstOctet === 35 && secondOctet >= 154 && secondOctet <= 155) || // Google Cloud
-  //       (firstOctet === 52 && secondOctet >= 0 && secondOctet <= 255) || // AWS
-  //       (firstOctet === 54 && secondOctet >= 0 && secondOctet <= 255) || // AWS
-  //       (firstOctet === 104 && secondOctet >= 196 && secondOctet <= 199) // Cloudflare
-  //     ) {
-  //       return true;
-  //     }
-  //   }
-
-  //   return false;
-  // }
-  async registerSendMfaOtp(createUserDto: CreateUserDto) {
+  async registerSendMfaOtp(
+    createUserDto: CreateUserDto,
+    req: Request,
+  ): Promise<{ status: string; message: string }> {
     try {
       const existingUser = await this.usersService.findByEmail(
         createUserDto.email,
@@ -294,19 +122,163 @@ export class AuthService {
       }
 
       await this.mfaOtpService.createMfaOtp(createUserDto.email);
+
       const cacheKey = `${this.cachePrefix}${createUserDto.email}`;
       await this.cacheManager.set(cacheKey, createUserDto);
       await this.addCacheKey(cacheKey);
+
+      // Save device information using DeviceService
+      await this.deviceService.saveDeviceInfoToCache(req);
 
       return {
         status: 'success sent code to email',
         message: 'MFA code sent to your email',
       };
     } catch (error) {
+      console.error('Error in registerSendMfaOtp:', error);
       throw new HttpException('Error registering user', HttpStatus.BAD_REQUEST);
     }
   }
-  async verifyMfa(otp: string) {
+
+  // Keep the extractBrowserInfo helper method
+  private extractBrowserInfo(userAgent: string): string {
+    if (!userAgent || userAgent === 'Unknown User Agent')
+      return 'Unknown Browser';
+
+    const ua = userAgent.toLowerCase();
+
+    if (ua.includes('edg/')) return 'Microsoft Edge';
+    if (ua.includes('chrome/') && !ua.includes('edg/')) return 'Google Chrome';
+    if (ua.includes('firefox/')) return 'Mozilla Firefox';
+    if (ua.includes('safari/') && !ua.includes('chrome/')) return 'Safari';
+    if (ua.includes('opera/') || ua.includes('opr/')) return 'Opera';
+    if (ua.includes('postman')) return 'Postman';
+    if (ua.includes('msie') || ua.includes('trident/'))
+      return 'Internet Explorer';
+
+    return 'Unknown Browser';
+  }
+  // async validateLogin(
+  //   user: User,
+  //   visitorId: string,
+  //   // deviceType: string,
+  //   // userAgent: string,
+  //   // req: Request,
+  // ) {
+  //   // const ipAddress =
+  //   //   req['ipAddress'] || req.headers['x-forwarded-for'] || 'Unknown';
+  //   // const geo = req['geo']
+  //   //   ? `${req['geo'].city}, ${req['geo'].country}`
+  //   //   : 'Unknown Location';
+
+  //   // console.log('IP Address:', ipAddress);
+  //   // console.log('Geo information:', req['geo']);
+
+  //   const { known } = await this.deviceService.checkAndSaveDevice(
+  //     user,
+  //     visitorId,
+  //     // userAgent,
+  //     // ipAddress,
+  //     // geo,
+  //   );
+
+  //   if (!known) {
+  //     await this.mfaOtpService.createMfaOtp(user.email);
+  //     const deviceInfo = {
+  //       email: user.email,
+  //       // deviceType: deviceType || 'Unknown Device',
+  //       // browser: this.extractBrowserInfo(userAgent) || 'Unknown Browser',
+  //       // ipAddress: ipAddress || 'Unknown IP',
+  //       // // userAgent: userAgent || 'Unknown User Agent hihi',
+  //       // geoLocation: geo || 'Unknown Location',
+  //       userId: user.id,
+  //       visitorId: visitorId,
+  //     };
+  //     await this.cacheManager.set(`device`, deviceInfo);
+  //     await this.cacheManager.set(`nguyenle`, user.email);
+  //     return {
+  //       success: 'mfa success',
+  //       message: 'MFA required due to new device login',
+  //       requireMfa: true,
+  //     };
+  //   }
+  //   // thiết bị đã biết → cấp token
+  //   // const token = this.jwtService.sign({ sub: user.id });
+  //   const payload = { email: user.email, sub: user.id, name: user.name };
+  //   return {
+  //     user_info: {
+  //       access_token: this.jwtService.sign(payload),
+  //       user: {
+  //         id: user.id,
+  //         name: user.name,
+  //         email: user.email,
+  //         role: user.role,
+  //       },
+  //     },
+  //     success: 'login success',
+  //     // access_token: this.jwtService.sign(payload),
+  //     // success: 'login success',
+  //     // user_info: {
+  //     //   id: user.id,
+  //     //   name: user.name,
+  //     //   email: user.email,
+  //     //   role: user.role,
+  //     // },
+  //   };
+  // }
+  // async registerSendMfaOtp(
+  //   createUserDto: CreateUserDto,
+  //   req: Request,
+  // ): Promise<{ status: string; message: string }> {
+  //   try {
+  //     // Check if the email is already in use
+  //     const existingUser = await this.usersService.findByEmail(
+  //       createUserDto.email,
+  //     );
+  //     if (existingUser) {
+  //       throw new HttpException('Email already in use', HttpStatus.BAD_REQUEST);
+  //     }
+
+  //     // Send MFA OTP to the user's email
+  //     await this.mfaOtpService.createMfaOtp(createUserDto.email);
+
+  //     // Cache the user data for later verification
+  //     const cacheKey = `${this.cachePrefix}${createUserDto.email}`;
+  //     await this.cacheManager.set(cacheKey, createUserDto);
+  //     await this.addCacheKey(cacheKey);
+
+  //     // Extract device information from the request
+  //     const userAgent = req.headers['user-agent'] || 'Unknown User Agent';
+  //     const deviceType =
+  //       req.headers['device-type'] ||
+  //       this.deviceService.extractDeviceType(userAgent);
+  //     const ipAddress =
+  //       req['ipAddress'] || req.headers['x-forwarded-for'] || 'Unknown IP';
+  //     const geoLocation = req['geo']?.city
+  //       ? `${req['geo'].city}, ${req['geo'].region}, ${req['geo'].country}`
+  //       : 'Unknown Location';
+
+  //     // Save device information in the cache
+  //     await this.deviceService.saveDeviceInfoToCache(
+  //       deviceType,
+  //       userAgent,
+  //       ipAddress,
+  //       geoLocation,
+  //     );
+
+  //     return {
+  //       status: 'success sent code to email',
+  //       message: 'MFA code sent to your email',
+  //     };
+  //   } catch (error) {
+  //     console.error('Error in registerSendMfaOtp:', error);
+  //     throw new HttpException('Error registering user', HttpStatus.BAD_REQUEST);
+  //   }
+  // }
+  async verifyMfa(
+    otp: string,
+    visitorId: string,
+  ): Promise<{ status: string; message: string; user: Partial<User> }> {
     try {
       const keys = await this.getCacheKeys();
       const email = keys.find(async (key) => {
@@ -319,6 +291,7 @@ export class AuthService {
           ))
         );
       });
+
       if (!email) {
         throw new HttpException(
           'Invalid or expired OTP',
@@ -330,10 +303,12 @@ export class AuthService {
       if (!createUserDto) {
         throw new HttpException('User data not found', HttpStatus.BAD_REQUEST);
       }
+
       const isValid = await this.mfaOtpService.verifyMfaOtp(
         email.replace(this.cachePrefix, ''),
         otp,
       );
+
       if (!isValid) {
         await this.usersService.incrementOtpAttempts(
           email.replace(this.cachePrefix, ''),
@@ -344,6 +319,7 @@ export class AuthService {
           HttpStatus.UNAUTHORIZED,
         );
       }
+
       const { user } = await this.usersService.createUser(createUserDto);
 
       await this.usersService.activateUser(user.id);
@@ -352,7 +328,39 @@ export class AuthService {
         otp,
       );
 
+      // Retrieve device info from cache
+      const deviceInfo = await this.cacheManager.get<{
+        deviceType: string;
+        browser: string;
+        ipAddress: string;
+        geoLocation: string;
+        userAgent: string;
+      }>('device');
+
+      if (!deviceInfo) {
+        console.log('Device info not found in cache');
+        throw new HttpException(
+          'Device info not found',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // Save device info in the database
+      const newDevice = this.deviceService.createDevice({
+        user,
+        visitorId,
+        deviceType: deviceInfo.deviceType,
+        browser: deviceInfo.browser,
+        ipAddress: deviceInfo.ipAddress,
+        geoLocation: deviceInfo.geoLocation,
+        userAgent: deviceInfo.userAgent,
+      });
+
+      await this.deviceService.saveDevice(newDevice);
+
+      // Remove cached data
       await this.cacheManager.del(email);
+      await this.cacheManager.del('device');
       await this.removeCacheKey(email);
 
       return {
@@ -361,9 +369,25 @@ export class AuthService {
         user,
       };
     } catch (error) {
+      console.error('Error in verifyMfa:', error);
       throw new HttpException('Error verifying MFA', HttpStatus.BAD_REQUEST);
     }
   }
+  // private extractBrowserInfo(userAgent: string): string {
+  //   if (!userAgent) return 'Unknown Browser';
+
+  //   if (userAgent.includes('Chrome')) return 'Chrome';
+  //   if (userAgent.includes('Firefox')) return 'Firefox';
+  //   if (userAgent.includes('Safari')) return 'Safari';
+  //   if (userAgent.includes('Edge')) return 'Edge';
+  //   if (userAgent.includes('Opera')) return 'Opera';
+  //   if (userAgent.includes('Postman')) return 'Postman';
+  //   if (userAgent.includes('MSIE') || userAgent.includes('Trident/'))
+  //     return 'Internet Explorer';
+
+  //   return 'Unknown Browser';
+  // }
+
   private async getCacheKeys(): Promise<string[]> {
     const keys = await this.cacheManager.get<string[]>('cache_keys');
     return keys || [];

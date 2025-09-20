@@ -203,4 +203,45 @@ export class UsersService {
   async findOne(id: number): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
   }
+
+  async findAdminUsers(): Promise<Partial<User>[]> {
+    try {
+      const admins = await this.userRepository.find({
+        where: { role: 'admin', isActive: true },
+        select: ['id', 'name', 'email', 'role'],
+      });
+
+      return admins.map((admin) => ({
+        id: admin.id,
+        username: admin.name, // Using name as username for display
+        email: admin.email,
+        // isAdmin: true,
+      }));
+    } catch (error) {
+      throw new HttpException(
+        'Error retrieving admin users',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  async findUsersWithChats(): Promise<Partial<User>[]> {
+    try {
+      const users = await this.userRepository.find({
+        where: { isActive: true, role: 'user' },
+        relations: ['chatMessages'],
+        select: ['id', 'name', 'email', 'role'],
+      });
+      return users.map((user) => ({
+        id: user.id,
+        username: user.name, // Using name as username for display
+        email: user.email,
+        isAdmin: user.role === 'admin',
+      }));
+    } catch (error) {
+      throw new HttpException(
+        'Error retrieving users with chats',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

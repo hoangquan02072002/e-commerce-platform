@@ -1,5 +1,11 @@
-// src/reviews/entities/review.entity.ts
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  JoinColumn,
+  CreateDateColumn,
+} from 'typeorm';
 import { User } from '../../users/entities/user.entity';
 import { Product } from '../../products/entities/product.entity';
 
@@ -11,12 +17,26 @@ export class Review {
   @Column()
   rating: number;
 
-  @Column()
+  @Column({ nullable: true })
   comment: string;
 
-  @ManyToOne(() => User, (user) => user.reviews)
+  @Column({ nullable: true })
+  title: string;
+
+  @Column({ nullable: true })
+  userId: number;
+
+  @Column({ nullable: true })
+  productId: number;
+
+  @ManyToOne(() => User, { eager: false })
+  @JoinColumn({ name: 'userId' })
   user: User;
 
-  @ManyToOne(() => Product, (product) => product.reviews)
+  @ManyToOne(() => Product, { eager: false })
+  @JoinColumn({ name: 'productId' })
   product: Product;
+
+  @CreateDateColumn()
+  createdAt: Date;
 }

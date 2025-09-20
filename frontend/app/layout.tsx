@@ -175,6 +175,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import ClientLayout from "@/components/ClientLayout"; // We'll create this
+import { useEffect } from "react";
+import ActivityTracker from "@/utils/trakerActivity";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -197,12 +199,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // useEffect(() => {
+  //   // Initialize automatic page tracking
+  //   ActivityTracker.initPageTracking();
+  // }, []);
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClientLayout>{children}</ClientLayout>
+        <ClientLayout>
+          {/* <ChatProvider>{children}</ChatProvider> */}
+          {children}
+        </ClientLayout>
       </body>
     </html>
   );

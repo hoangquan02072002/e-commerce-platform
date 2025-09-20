@@ -7,17 +7,18 @@ export class Notification {
   id: number;
 
   @Column()
-  title: string;
-
-  @Column()
   message: string;
 
   @Column({ default: false })
-  isRead: boolean;
+  Read: boolean;
 
   @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   @ManyToOne(() => User, (user) => user.notifications)
   user: User;
+  @Column()
+  userId: number;
+  @Column()
+  type: string;
 }

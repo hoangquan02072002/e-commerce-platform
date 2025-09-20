@@ -76,7 +76,7 @@ export class PaymentsController {
       phoneNumber,
       stateCountry,
       country,
-    ); // Call the service method to create the session
+    );
   }
   @Post('webhook')
   async handleStripeWebhook(

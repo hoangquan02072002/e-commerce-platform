@@ -9,6 +9,9 @@ import {
   UseGuards,
   Body,
   Patch,
+  HttpException,
+  HttpStatus,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { OrdersService } from './orders.service';
 // import { CreateOrderDto } from './dto/create-order.dto';
@@ -44,19 +47,48 @@ export class OrdersController {
     return this.ordersService.findOne(+id);
   }
 
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles('admin') // Ensure only admin can access this route
+  // @Patch(':id/status') // Define the route for updating order status
+  // async updateOrderStatus(
+  //   @Param('id') id: number,
+  //   @Body() updateOrderDto: UpdateOrderDto,
+  // ) {
+  //   return this.ordersService.updateOrderStatus(id, updateOrderDto);
+  // }
+  @Patch(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin') // Ensure only admin can access this route
-  @Patch(':id/status') // Define the route for updating order status
+  @Roles('admin')
   async updateOrderStatus(
-    @Param('id') id: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() updateOrderDto: UpdateOrderDto,
   ) {
-    return this.ordersService.updateOrderStatus(id, updateOrderDto);
+    try {
+      const result = await this.ordersService.updateOrderStatus(
+        id,
+        updateOrderDto,
+      );
+
+      return {
+        success: true,
+        message: `Order status updated from ${result.previousStatus} to ${updateOrderDto.status}`,
+        data: {
+          order: result,
+          previousStatus: result.previousStatus,
+          newStatus: updateOrderDto.status,
+        },
+      };
+    } catch (error) {
+      throw new HttpException(
+        {
+          success: false,
+          message: `Failed to update order ${id} status`,
+          error: error.message,
+        },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
-  // @Patch(':id')
-  // update(@Param('id') id: string, @Body() updateOrderDto: UpdateOrderDto) {
-  //   return this.ordersService.update(+id, updateOrderDto);
-  // }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

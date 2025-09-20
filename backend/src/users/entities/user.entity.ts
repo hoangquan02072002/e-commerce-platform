@@ -56,6 +56,6 @@ export class User {
   @Column({ nullable: true, type: 'timestamp' })
   resetPasswordExpires: Date;
 
-  @OneToMany(() => ChatMessage, (chatMessage) => chatMessage.sender)
-  chatMessages: ChatMessage[];
+  @OneToMany(() => ChatMessage, (message) => message.sender)
+  messages: ChatMessage[];
 }
