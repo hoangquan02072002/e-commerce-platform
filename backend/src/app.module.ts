@@ -31,7 +31,7 @@ import { Device } from './device/entities/device.entity';
 // import { ChatappModule } from './chatapp/chatapp.module';
 import { ChatMessage } from './chatapp/entities/chatapp.entity';
 import { IpLocationMiddleware } from './middleware/ip-location.middleware';
-// import { ChatModule } from './chatgateway/chat.module';
+import { ChatModule } from './chatgateway/chat.module';
 import { KafkaModule } from './kafka/kafka.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { ActivityTrackingServiceModule } from './activity-tracking-service/activity-tracking-service.module';
@@ -105,7 +105,7 @@ import { CartactivityModule } from './cartactivity/cartactivity.module';
     ActivityTrackingServiceModule,
     CartactivityModule,
     // ChatappModule,
-    // ChatModule,
+    ChatModule,
     // ... other modules ...
   ],
   controllers: [AppController],

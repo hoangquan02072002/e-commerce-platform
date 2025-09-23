@@ -15,8 +15,8 @@ import { KafkaController } from './kafka.controller';
           client: {
             clientId: 'order-service',
             // clientId: 'order-service-client',
-            brokers: [process.env.KAFKA_BROKERS || 'kafka:29092'],
-            // brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
+            // brokers: [process.env.KAFKA_BROKERS || 'kafka:29092'],
+            brokers: [process.env.KAFKA_BROKERS || 'localhost:9092'],
           },
           consumer: {
             groupId: 'order-consumer-group',

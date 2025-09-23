@@ -16,9 +16,6 @@ export class OrdersService {
     private readonly orderRepository: Repository<Order>,
     private readonly kafkaService: KafkaService,
   ) {}
-  // create(createOrderDto: CreateOrderDto) {
-  //   return 'This action adds a new order';
-  // }
 
   findAll(): Promise<Order[]> {
     return this.orderRepository.find();
@@ -131,54 +128,10 @@ export class OrdersService {
       // Don't throw error to prevent breaking order operations
     }
   }
-  // async updateOrderStatus(
-  //   id: number,
-  //   updateOrderDto: UpdateOrderDto,
-  // ): Promise<Order & { previousStatus: string }> {
-  //   const order = await this.orderRepository.findOne({
-  //     where: { id },
-  //     relations: ['user'],
-  //   });
-
-  //   if (!order) {
-  //     throw new NotFoundException('Order not found');
-  //   }
-
-  //   // Store the previous status for the event payload
-  //   const previousStatus = order.status;
-
-  //   // Update the order status
-  //   order.status = updateOrderDto.status;
-  //   const updatedOrder = await this.orderRepository.save(order);
-
-  //   // Prepare the event payload
-  //   const statusChangeEvent = {
-  //     orderId: order.id,
-  //     userId: order.user.id,
-  //     previousStatus,
-  //     newStatus: order.status,
-  //     updatedAt: new Date().toISOString(),
-  //     orderDetails: {
-  //       id: order.id,
-  //     },
-  //   };
-
-  //   // Send the event to Kafka
-  //   await this.kafkaService.sendMessage(
-  //     'order-status-updates',
-  //     statusChangeEvent,
-  //   );
-
-  //   return { ...updatedOrder, previousStatus };
-  // }
 
   findOne(id: number) {
     return `This action returns a #${id} order`;
   }
-
-  // update(id: number, updateOrderDto: UpdateOrderDto) {
-  //   return `This action updates a #${id} order`;
-  // }
 
   remove(id: number) {
     return `This action removes a #${id} order`;

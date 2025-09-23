@@ -26,11 +26,6 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 export class OrdersController {
   constructor(private readonly ordersService: OrdersService) {}
 
-  // @Post()
-  // create(@Body() createOrderDto: CreateOrderDto) {
-  //   return this.ordersService.create(createOrderDto);
-  // }
-
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @Get()
@@ -47,15 +42,6 @@ export class OrdersController {
     return this.ordersService.findOne(+id);
   }
 
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('admin') // Ensure only admin can access this route
-  // @Patch(':id/status') // Define the route for updating order status
-  // async updateOrderStatus(
-  //   @Param('id') id: number,
-  //   @Body() updateOrderDto: UpdateOrderDto,
-  // ) {
-  //   return this.ordersService.updateOrderStatus(id, updateOrderDto);
-  // }
   @Patch(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')

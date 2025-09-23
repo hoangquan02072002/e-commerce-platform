@@ -1,4 +1,4 @@
-// File: E:\project\graduate_project\frontend\app\cart\page.tsx
+// File: E:\project\New folder (2)\project_graduate\frontend\app\cart\page.tsx
 import * as entry from '../../../../app/cart/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

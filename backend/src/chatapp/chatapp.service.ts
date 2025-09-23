@@ -1,78 +1,3 @@
-// import { Injectable, NotFoundException } from '@nestjs/common';
-// import { InjectRepository } from '@nestjs/typeorm';
-// import { Repository } from 'typeorm';
-
-// import { UsersService } from '../users/users.service';
-// import { ChatMessage } from './entities/chatapp.entity';
-// import { CreateChatDto } from './dto/create-chatapp.dto';
-
-// @Injectable()
-// export class ChatappService {
-//   constructor(
-//     @InjectRepository(ChatMessage)
-//     private readonly chatRepository: Repository<ChatMessage>,
-//     private readonly usersService: UsersService,
-//   ) {}
-
-//   async create(createChatDto: CreateChatDto): Promise<ChatMessage> {
-//     const { content, roomId, senderId, recipientId } = createChatDto;
-
-//     // Find the sender
-//     const sender = await this.usersService.findOne(senderId);
-//     if (!sender) {
-//       throw new NotFoundException(`User with ID ${senderId} not found`);
-//     }
-
-//     // Create new chat message
-//     const chatMessage = new ChatMessage();
-//     chatMessage.content = content;
-//     chatMessage.roomId = roomId;
-//     chatMessage.sender = sender;
-
-//     if (recipientId) {
-//       chatMessage.recipientId = recipientId;
-//     }
-
-//     return this.chatRepository.save(chatMessage);
-//   }
-
-//   async findMessagesByRoom(roomId: string): Promise<ChatMessage[]> {
-//     return this.chatRepository.find({
-//       where: { roomId },
-//       relations: ['sender'],
-//       order: { createdAt: 'ASC' },
-//     });
-//   }
-
-//   async markAsRead(id: number): Promise<ChatMessage> {
-//     const message = await this.chatRepository.findOne({ where: { id } });
-//     if (!message) {
-//       throw new NotFoundException(`Message with ID ${id} not found`);
-//     }
-
-//     message.isRead = true;
-//     return this.chatRepository.save(message);
-//   }
-
-//   async findUnreadMessagesForUser(userId: number): Promise<ChatMessage[]> {
-//     return this.chatRepository.find({
-//       where: { recipientId: userId, isRead: false },
-//       relations: ['sender'],
-//       order: { createdAt: 'ASC' },
-//     });
-//   }
-//   async findUsersWithChats(): Promise<any[]> {
-//     const users = await this.usersService.findUsersWithChats();
-//     return users;
-//   }
-
-//   async findAdminUsers(): Promise<any[]> {
-//     // Return users with admin role
-//     const admins = await this.usersService.findAdminUsers();
-//     return admins;
-//   }
-// }
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -87,20 +12,6 @@ export class ChatappService {
     private readonly chatRepository: Repository<ChatMessage>,
   ) {}
 
-  // async create(createChatDto: CreateChatDto): Promise<ChatMessage> {
-  //   const { senderId, ...rest } = createChatDto;
-
-  //   // Fetch the sender entity
-  //   const sender = await this.chatRepository.manager.findOne('User', {
-  //     where: { id: senderId },
-  //   });
-  //   if (!sender) {
-  //     throw new Error(`Sender with ID ${senderId} not found`);
-  //   }
-
-  //   const message = this.chatRepository.create({ ...rest, sender });
-  //   return this.chatRepository.save(message);
-  // }
   async create(createChatDto: CreateChatDto): Promise<ChatMessage> {
     const { senderId, recipientId, ...rest } = createChatDto;
 
@@ -124,14 +35,6 @@ export class ChatappService {
     const message = this.chatRepository.create({ ...rest, sender, recipient });
     return this.chatRepository.save(message);
   }
-
-  // async findMessagesByRoom(roomId: string): Promise<ChatMessage[]> {
-  //   return this.chatRepository.find({
-  //     where: { roomId },
-  //     relations: ['sender'],
-  //     order: { createdAt: 'ASC' },
-  //   });
-  // }
 
   async getMessagesByRoomId(roomId: string): Promise<ChatMessage[]> {
     return this.chatRepository.find({

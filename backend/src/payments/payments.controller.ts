@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -8,16 +9,14 @@ import {
   Delete,
   HttpException,
   HttpStatus,
-  UseGuards,
   Req,
   Headers,
 } from '@nestjs/common';
 import { PaymentsService } from './payments.service';
 import EmailService from '../utils/emailService';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+
 import Stripe from 'stripe';
 import { Request } from 'express';
-import * as QRCode from 'qrcode';
 
 @Controller('payments')
 export class PaymentsController {
@@ -91,27 +90,4 @@ export class PaymentsController {
       throw new HttpException('Webhook Error', HttpStatus.BAD_REQUEST); // Return an error response
     }
   }
-  // @Post('webhook')
-  // async handleStripeWebhook(
-  //   @Req() req: Request,
-  //   @Headers('stripe-signature') sig: string,
-  // ) {
-  //   const endpointSecret = process.env.WEB_HOOK_SECRET;
-  //   let event: Stripe.Event;
-
-  //   try {
-  //     event = this.paymentsService['stripe'].webhooks.constructEvent(
-  //       req.rawBody,
-  //       sig,
-  //       endpointSecret,
-  //     );
-  //   } catch (err) {
-  //     return { error: `Webhook Error: ${err.message}` };
-  //   }
-
-  //   await this.paymentsService.handleWebhook(event);
-  //   return { received: true };
-  // }
-
-  // implement payment qrcode
 }

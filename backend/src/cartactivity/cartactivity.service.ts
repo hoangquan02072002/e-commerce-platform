@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable } from '@nestjs/common';
 import { CreateCartactivityDto } from './dto/create-cartactivity.dto';
 import { UpdateCartactivityDto } from './dto/update-cartactivity.dto';

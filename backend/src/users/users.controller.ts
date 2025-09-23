@@ -25,21 +25,6 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  // @Post('create')
-  // create(@Body() createUserDto: CreateUserDto) {
-  //   return this.usersService.create(createUserDto);
-  // }
-
-  // @Get()
-  // findAll() {
-  //   return this.usersService.findAll();
-  // }
-
-  // @Get(':id')
-  // findOne(@Param('id') id: string) {
-  //   return this.usersService.findOne(+id);
-  // }
-
   // UseGuards(JwtAuthGuard);
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
@@ -55,9 +40,4 @@ export class UsersController {
   ) {
     return this.usersService.updateProfile(userId, updateProfileDto);
   }
-
-  // @Delete(':id')
-  // remove(@Param('id') id: string) {
-  //   return this.usersService.remove(+id);
-  // }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import {
   Controller,
   Get,
@@ -61,23 +62,4 @@ export class ChatappController {
   async getAllUsersWithChats() {
     return this.chatappService.getUsersWhoMessagedAdmins();
   }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('unread')
-  // findUnreadMessages(@Request() req) {
-  //   return this.chatappService.findUnreadMessagesForUser(req.user.id);
-  // }
-
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('admin')
-  // @Get('users')
-  // async getChatUsers() {
-  //   return this.chatappService.findUsersWithChats();
-  // }
-
-  // @UseGuards(JwtAuthGuard)
-  // @Get('admins')
-  // async getAdminUsers() {
-  //   return this.chatappService.findAdminUsers();
-  // }
 }
